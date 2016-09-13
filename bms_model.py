@@ -9,21 +9,15 @@ import scipy as sp
 
 pyublas_exists = True
 try:
-    import pyublas
+    from msd import MSD_BOOST
 except ImportError:
     pyublas_exists = False
 
-if pyublas_exists:
-    from msd import MSD_BOOST
-
 cython_exists = True
 try:
-    from rates import rates
+    from msdc import MSD_CYTHON
 except ImportError:
     cython_exists = False
-
-if cython_exists:
-    from msdc import MSD_CYTHON
 
 from msd import MSD
 

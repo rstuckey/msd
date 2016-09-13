@@ -11,21 +11,15 @@ import pymc as mc
 
 pyublas_exists = True
 try:
-    import pyublas
+    from msd import MSD_BOOST
 except ImportError:
     pyublas_exists = False
 
-if pyublas_exists:
-    from msd import MSD_BOOST
-
 cython_exists = True
 try:
-    from rates import rates
+    from msdc import MSD_CYTHON
 except ImportError:
     cython_exists = False
-
-if cython_exists:
-    from msdc import MSD_CYTHON
 
 from msd import MSD
 
@@ -122,7 +116,7 @@ if __name__ == '__main__':
 
     print
 
-    if PLOT_MAP:
+    if PLOT_MAP or PLOT_MCMC:
         if (('fig' not in locals()) or (fig is None)):
             fig, Axes, Lines, Text = plot(msd.name, T, E, Z, G, Xe=np.zeros(X.shape), Fe=np.zeros(F.shape), FF=FF)
             # pp.show()
@@ -328,10 +322,10 @@ if __name__ == '__main__':
         # e_func = interpolate.interp1d(T, E, kind='linear', axis=0, bounds_error=False)
 
         # Compute the response
-        if ((MODEL == 'boost') or (MODEL == 'cython')):
-            Xe, Xedot, Fe = msd_best.integrate(x0, t0, dt)
-        else:
-            Xe, Xedot, Fe = msd_best.integrate(z0, T)
+        # if ((MODEL == 'boost') or (MODEL == 'cython')):
+        #     Xe, Xedot, Fe = msd_best.integrate(x0, t0, dt)
+        # else:
+        Xe, Xedot, Fe = msd_best.integrate(z0, T)
 
         # if PLOT:
         #     addplot(Axes, jr_idx, T, Xe, Fe, color='indianred')
