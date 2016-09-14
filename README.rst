@@ -2,23 +2,130 @@
  **MSD** : Mass-Spring-Damper Simulation & Estimation
 ======================================================
 
-.. image:: https://bitbucket.org/stuckeyr/bms/raw/master/images/msd-model_graph.png
+.. image:: https://github.com/stuckeyr/msd/raw/master/msd_estim_output_plot.png
    :align: center
-   :alt: Mass-Spring-Damper Bayesian Model
+   :alt: Mass-Spring-Damper Estimation Output Plot
    :width: 419px
 
 .. class:: center
 
 Bayesian Model Graph
 
+Requirements
+============
+
+The standard Python distribution: http://www.python.org/
+
+The NumPy scientific computing package: http://www.numpy.org/
+
+Matplotlib: http://matplotlib.org/
+
+Cython: http://cython.org/
+
+The Boost C++ libraries: http://www.boost.org/
+
+The odeint C++ library: http://headmyshoulder.github.io/odeint-v2/
+
+PyUblas: http://www.wxpython.org/
+
+Installation
+============
+
+Ubuntu Linux
+------------
+
+First, download a release version of Boost from: http://www.boost.org/users/download/
+
+Install Boost. I like to keep it local::
+
+  tar xvf boost_X_XX_X.tar.bz2
+  cd boost_X_XX_X
+  ./bootstrap.sh
+  mkdir $HOME/pool
+  ./b2 install --prefix=$HOME/pool
+  cd ..
+
+Tell the dynamic linker about Boost (add to your .bashrc)::
+
+  export LD_LIBRARY_PATH=$HOME/pool/lib:${LD_LIBRARY_PATH}
+
+Assuming you have Python installed on your system, make sure you also have the development libraries::
+
+  sudo apt-get install libpython-dev
+
+Clone this repository
+
+  git clone https://github.com/stuckeyr/msd.git
+
+Either install the required libraries, preferably inside a virtualenv::
+
+  cd msd
+  pip install Cython ipython jupyter lmfit matplotlib numpy pymc scipy tqdm
+  cd ..
+
+Or install using the requirements::
+
+  cd msd
+  pip install -r requirements.txt
+  cd ..
+
+Clone the odeint source, and install (copy) into your Boost directory::
+
+  git clone git://github.com/headmyshoulder/odeint-v2
+  cp -r odeint-v2/include/boost/numeric/ $HOME/pool/include/boost/
+
+Download PyUblas::
+
+  git clone http://git.tiker.net/trees/pyublas.git
+  cd pyublas
+
+Create and Customize a Configuration File ".aksetup-defaults.py" with the following text::
+
+  BOOST_BINDINGS_INC_DIR = ['$HOME/pool/include/boost-bindings']
+  BOOST_INC_DIR = ['$HOME/pool/include/boost']
+  BOOST_LIB_DIR = ['$HOME/pool/lib']
+  BOOST_PYTHON_LIBNAME = ['boost_python']
+
+Note: I have found it necessary to expand the $HOME environment variable.
+
+Build PyUblas::
+
+  sudo python setup.py install
+  cd ..
+
+Install (copy) the include files into your Boost directory::
+
+  cp -r pyublas/include/pyublas/ ~/pool/include/
+
+The instructions to install Pyublas are also here: http://documen.tician.de/pyublas/installing.html
+
+Finally, build the Boost msd model, "msde"::
+
+  cd msd
+  python setup.py build
+
+If you encounter a compiler error: "... '_1' was not declared in this scope ...", add the following directive to $HOME/pool/include/boost/python/exception_translator.hpp and $HOME/pool/include/boost/python/iterator.hpp, after the include of boost/bind.hpp::
+
+  # include <boost/bind/placeholders.hpp>
+
+Also, expand any reference to _1 and _2 with boost::placeholders::_1 and boost::placeholders::_2, respectively.
+
+If that goes ok, link to the shared object::
+
+  ln -fs build/lib.linux-x86_64-2.7/msde.so
+
+In the same directory build the Cython extension::
+
+  python setup-cython.py build
+
+Again, if that goes ok, link to the shared object::
+
+  ln -fs build/lib.linux-x86_64-2.7/msd/msdc.so
+
 Execution
 =========
 
-The best way to run the msd scripts is from within iPython::
-
-  ipython --pylab
-
-Or a Jupyter notebook::
+The best way to run the msd scripts is from within a Jupyter notebook::
 
   jupyter notebook
 
