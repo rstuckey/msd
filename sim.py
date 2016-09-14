@@ -48,6 +48,8 @@ if __name__ == '__main__':
     if ('PLOT_SIM' not in locals()):
         # PLOT_SIM = True
         PLOT_SIM = False
+    if PLOT_SIM:
+        from plot import plot
 
     if ('MODEL' not in locals()):
         MODEL = 'python'
@@ -183,4 +185,6 @@ if __name__ == '__main__':
     # z0 = X[0,:]
 
     if PLOT_SIM:
-        execfile("simplot.py")
+        FF = ml.repmat(None, 50, 1)
+        fig, Axes, Lines, Text = plot(msd.name, T, E, Z, G, Xe=np.zeros(X.shape), Fe=np.zeros(F.shape), FF=FF)
+        fig.canvas.draw()

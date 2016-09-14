@@ -96,14 +96,14 @@ if __name__ == '__main__':
     #  http://en.wikipedia.org/wiki/Coefficient_of_determination
     Rsq = 1.0 - SS_err/SS_tot
 
-    print "            TRUE       EST    %2.0f%% CONF" % conf
+    print "            TRUE       EST    {:2.0f}% CONF".format(conf)
     for i in range(len(c_idx)):
-        print "%5s: %10.4f %10.4f +/-%-.4f" % (c_idx[i], msd.C[c_idx[i]], C[i], CI[i])
+        print "{:5s}: {:10.4f} {:10.4f} +/-{:-.4f}".format(c_idx[i], msd.C[c_idx[i]], C[i, 0], CI[i])
 
     print "R^2 = %.4f" % Rsq
 
     for i in range(len(c_idx)):
-        msd_est.C[c_idx[i]] = np.ravel(C)[i]
+        msd_est.C[c_idx[i]] = C[i, 0]
 
     # Estimated force matrix
     H = np.dot(A, C)

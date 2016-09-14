@@ -143,21 +143,14 @@ Select the model to run::
 
 From there, you can start by running the simulation::
 
+  PLOT_SIM = True
   %run -i sim.py
 
 The -i flag retains all variables in the global workspace.
 
-Plot the system response::
-
-  %run -i simplot.py
-
 Then try performing a linear regression::
 
   %run -i reg.py
-
-And overlay the resulting estimated system response on the original plots::
-
-  %run -i simplot.py
 
 Next, do some iterative. Select the optimisation function::
 

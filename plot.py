@@ -72,17 +72,18 @@ def plot(name, T, D, X, F, Xe=None, Fe=None, FF=None):
 
     ax = Axes[4]
     ax.grid(color='lightgrey', linestyle=':')
-    lines = ax.plot(range(0, np.size(FF, 0)), FF, color='red', linestyle='-', linewidth=1.5)
-    Lines.append(lines)
-    ax.set_xlim(0, np.size(FF, 0))
-    ax.set_ylim(bottom=0.0)
-    ax.autoscale(enable=False)
-    # ax.autoscale(enable=True, axis='y')
-    ax.set_ylabel(ff_str[0])
-    lim = ax.set_ylim(bottom=0.0)
+    if (FF is not None):
+        lines = ax.plot(range(0, np.size(FF, 0)), FF, color='red', linestyle='-', linewidth=1.5)
+        Lines.append(lines)
+        ax.set_xlim(0, np.size(FF, 0))
+        ax.set_ylim(bottom=0.0)
+        ax.autoscale(enable=False)
+        # ax.autoscale(enable=True, axis='y')
+        ax.set_ylabel(ff_str[0])
+        lim = ax.set_ylim(bottom=0.0)
 
-    text = ax.annotate("{:.4f}".format(0.0), xy=(0.98, 0.06), xycoords='axes fraction', backgroundcolor='black', color='white', fontsize=12, horizontalalignment='right', verticalalignment='bottom', weight='bold')
-    Text.append(text)
+        text = ax.annotate("{:.4f}".format(0.0), xy=(0.98, 0.06), xycoords='axes fraction', backgroundcolor='black', color='white', fontsize=12, horizontalalignment='right', verticalalignment='bottom', weight='bold')
+        Text.append(text)
 
     ax = Axes[5]
     ax.set_xticks([ ])
@@ -94,7 +95,7 @@ def plot(name, T, D, X, F, Xe=None, Fe=None, FF=None):
         Text.append(text)
 
     # pp.subplots_adjust(left=0.125, bottom=0.1, right=0.9, top=0.9, wspace=0.2, hspace=0.2)
-    pp.subplots_adjust(left=0.01, wspace=0.3)
+    pp.subplots_adjust(left=0.10, wspace=0.3)
 
     # pp.show()
     fig.canvas.show()
