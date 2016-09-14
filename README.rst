@@ -18,7 +18,7 @@ The best way to run the msd scripts is from within iPython::
 
   ipython --pylab
 
-Or a Jupyter notebook:
+Or a Jupyter notebook::
 
   jupyter notebook
 

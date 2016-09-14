@@ -45,7 +45,10 @@ if __name__ == '__main__':
             figname = msd_best.name + " Extended Coefficient Traces, Autocorrelations & Histograms"
             mcmc_trace = mcmc_ext_trace
 
-        figtrace = pp.figure(figname, figsize=(15.0, 9.0))
+        # figtrace = pp.figure(figname, figsize=(15.0, 9.0))
+        fig, AxesArr = pp.subplots(nr, nc, figsize=(10.0, 6.0))
+
+        # Axes = np.ravel(AxesArr)
 
         #Nso = Nsb[0] - Nsb[1]
         acorr_maxlags = 100
@@ -64,49 +67,59 @@ if __name__ == '__main__':
 
             c = np.mean(mcmc_trace[-1][ck])
 
-            ax = pp.subplot(nr, nc, i*nc + 1)
+            # ax = pp.subplot(nr, nc, i*nc + 1)
+            # ax = Axes[i*nc]
+            ax = AxesArr[i, 0]
             ax.grid(color='lightgrey', linestyle=':')
             ax.tick_params(axis='both', which='major', labelsize=10)
             for k in range(len(Nc)):
                 alpha = 0.5
                 if (k == len(Nc) - 1):
                     alpha = 1.0
-                pp.plot(range(Nccs[k], Nccs[k + 1]), mcmc_trace[k][ck], alpha=alpha, color='seagreen', linestyle='-', linewidth=1.0, zorder=2)
+                ax.plot(range(Nccs[k], Nccs[k + 1]), mcmc_trace[k][ck], alpha=alpha, color='seagreen', linestyle='-', linewidth=1.0, zorder=2)
                 if (k > 0):
-                    pp.axvline(Nccs[k], alpha=0.75, linestyle='--', linewidth=1.5, color='darkgreen')
-            pp.xlim(0, sum(Nc))
-            pp.ylabel(C_str[ck], rotation='horizontal')
+                    ax.axvline(Nccs[k], alpha=0.75, linestyle='--', linewidth=1.5, color='darkgreen')
+            ax.set_xlim(0, sum(Nc))
+            ax.set_ylabel(C_str[ck], rotation='horizontal')
             if (i == 0):
-                pp.title("Trace")
+                ax.set_title("Trace")
 
-            ax = pp.subplot(nr, nc, i*nc + 2)
+            # ax = pp.subplot(nr, nc, i*nc + 2)
+            # ax = Axes[i*nc + 1]
+            ax = AxesArr[i, 1]
             ax.grid(color='lightgrey', linestyle=':')
             # Calculate the autocorrelation (raw and detrended)
-            (acorr_lags, acorr_c, acorr_line, acorr_b) = pp.acorr(mcmc_trace[-1][ck], detrend=pl.mlab.detrend_none, linewidth=0.0, markersize=0.0, maxlags=acorr_maxlags, usevlines=False)
-            pp.fill_between(acorr_lags, acorr_line.get_ydata(), alpha=0.25, color='crimson', linewidth=0.0)
-            pp.acorr(mcmc_trace[-1][ck], color='crimson', detrend=pl.mlab.detrend_mean, linestyle='-', linewidth=1.5, maxlags=acorr_maxlags)
-            pp.xlim(-acorr_maxlags, acorr_maxlags)
-            pp.ylim(-0.1, 1.1)
-            pp.ylabel(C_str[ck], rotation='horizontal')
+            (acorr_lags, acorr_c, acorr_line, acorr_b) = ax.acorr(mcmc_trace[-1][ck], detrend=pl.mlab.detrend_none, linewidth=0.0, markersize=0.0, maxlags=acorr_maxlags, usevlines=False)
+            ax.fill_between(acorr_lags, acorr_line.get_ydata(), alpha=0.25, color='crimson', linewidth=0.0)
+            ax.acorr(mcmc_trace[-1][ck], color='crimson', detrend=pl.mlab.detrend_mean, linestyle='-', linewidth=1.5, maxlags=acorr_maxlags)
+            ax.set_xlim(-acorr_maxlags, acorr_maxlags)
+            ax.set_ylim(-0.1, 1.1)
+            ax.set_ylabel(C_str[ck], rotation='horizontal')
             if (i == 0):
-                pp.title("Autocorrelation (detrended)")
+                ax.set_title("Autocorrelation (detrended)")
 
-            ax = pp.subplot(nr, nc, i*nc + 3)
+            # ax = pp.subplot(nr, nc, i*nc + 3)
+            # ax = Axes[i*nc + 2]
+            ax = AxesArr[i, 2]
             ax.grid(color='lightgrey', linestyle=':')
             # Calculate the median and 95% Highest Probability Density (HPD) or minimum width Bayesian Confidence (BCI) interval
             hist_quant = calc_quantiles(mcmc_trace[-1][ck])
             hist_hpd = calc_hpd(mcmc_trace[-1][ck], hist_hpd_alpha)
-            (hist_n, hist_bins, hist_patches) = pp.hist(mcmc_trace[-1][ck], bins=hist_num_bins, color='steelblue', histtype='stepfilled', linewidth=0.0, normed=True, zorder=2)
-            pp.ylim(0.0, max(hist_n)*1.1)
-            pp.axvspan(hist_hpd[0], hist_hpd[1], alpha=0.25, facecolor='darkslategray', linewidth=1.5)
+            (hist_n, hist_bins, hist_patches) = ax.hist(mcmc_trace[-1][ck], bins=hist_num_bins, color='steelblue', histtype='stepfilled', linewidth=0.0, normed=True, zorder=2)
+            ax.set_ylim(0.0, max(hist_n)*1.1)
+            ax.axvspan(hist_hpd[0], hist_hpd[1], alpha=0.25, facecolor='darkslategray', linewidth=1.5)
             # ax.set_autoscaley_on(False)
             # pp.plot([c, c], ax.get_ylim(), color='darkslategray', linewidth=1.5)
-            pp.axvline(hist_quant[50], linestyle='-', linewidth=1.5, color='darkslategray')
-            pp.ylabel(C_str[ck], rotation='horizontal')
+            ax.axvline(hist_quant[50], linestyle='-', linewidth=1.5, color='darkslategray')
+            ax.set_ylabel(C_str[ck], rotation='horizontal')
             if (i == 0):
-                pp.title("Posterior (%%%2.0f HPD)" % ((1.0 - hist_hpd_alpha)*100.0))
+                ax.set_title("Posterior (%%%2.0f HPD)" % ((1.0 - hist_hpd_alpha)*100.0))
+
+        pp.subplots_adjust(left=0.01, wspace=0.3)
+
+        figtr.canvas.show()
 
     if DO_PYMC_BMS:
         mcmc_trace = mcmc_trace_temp
 
-    pp.show()
+#    pp.show()

@@ -28,7 +28,7 @@ def plot(name, T, D, X, F, Xe=None, Fe=None, FF=None):
 
     # fig = pp.figure(name + " Optimisation", figsize=(12.0, 4.0))
 
-    fig, AxesArr = pp.subplots(nr, nc, figsize=(12.0, 6.0))
+    fig, AxesArr = pp.subplots(nr, nc, figsize=(10.0, 6.0))
 
     # Axes = [ Axarr[0, 0], Axarr[0, 1], Axarr[1, 0], Axarr[1, 1] ]
     # Axes = [ ]
@@ -94,7 +94,7 @@ def plot(name, T, D, X, F, Xe=None, Fe=None, FF=None):
         Text.append(text)
 
     # pp.subplots_adjust(left=0.125, bottom=0.1, right=0.9, top=0.9, wspace=0.2, hspace=0.2)
-    pp.subplots_adjust(wspace=0.3)
+    pp.subplots_adjust(left=0.01, wspace=0.3)
 
     # pp.show()
     fig.canvas.show()
