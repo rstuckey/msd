@@ -123,7 +123,7 @@ if __name__ == '__main__':
 
                 # Compute the response
                 # Xe, Xedot, Fe = msd_fest.integrate(z0, T, e_func)
-                Xe, Xedot, Fe = msd_fest.integrate(x0, T)
+                Xe, Xedot, Fe = msd_fest.integrate(self.z0, self.T)
 
                 # For fmin, fmin_powell, fmin_bfgs, fmin_l_bfgs_b
                 dF = G - Fe

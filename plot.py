@@ -24,11 +24,16 @@ def plot(name, T, D, X, F, Xe=None, Fe=None, FF=None):
 
     nc = 2 # number of columns
     # nr = 2 # number of rows
-    nr = 3 # number of rows
+    if (FF is None):
+        nr = 2 # number of rows
+        figsize = (10.0, 4.0)
+    else:
+        nr = 3
+        figsize = (10.0, 6.0)
 
     # fig = pp.figure(name + " Optimisation", figsize=(12.0, 4.0))
 
-    fig, AxesArr = pp.subplots(nr, nc, figsize=(10.0, 6.0))
+    fig, AxesArr = pp.subplots(nr, nc, figsize=figsize)
 
     # Axes = [ Axarr[0, 0], Axarr[0, 1], Axarr[1, 0], Axarr[1, 1] ]
     # Axes = [ ]
@@ -70,9 +75,9 @@ def plot(name, T, D, X, F, Xe=None, Fe=None, FF=None):
     ax.autoscale(enable=False)
     ax.set_ylabel(d_str[0])
 
-    ax = Axes[4]
-    ax.grid(color='lightgrey', linestyle=':')
     if (FF is not None):
+        ax = Axes[4]
+        ax.grid(color='lightgrey', linestyle=':')
         lines = ax.plot(range(0, np.size(FF, 0)), FF, color='red', linestyle='-', linewidth=1.5)
         Lines.append(lines)
         ax.set_xlim(0, np.size(FF, 0))
@@ -85,14 +90,15 @@ def plot(name, T, D, X, F, Xe=None, Fe=None, FF=None):
         text = ax.annotate("{:.4f}".format(0.0), xy=(0.98, 0.06), xycoords='axes fraction', backgroundcolor='black', color='white', fontsize=12, horizontalalignment='right', verticalalignment='bottom', weight='bold')
         Text.append(text)
 
-    ax = Axes[5]
-    ax.set_xticks([ ])
-    ax.set_xticklabels([ ])
-    ax.set_yticks([ ])
-    ax.set_yticklabels([ ])
-    for j in range(3):
-        text = ax.annotate("{} = {:.4f}".format(c_idx[j], 0.0), xy=(0.1, 1.0 - 0.2*(j + 1)), xycoords='axes fraction', backgroundcolor='white', color='black', fontsize=12, horizontalalignment='left', verticalalignment='bottom', weight='bold')
-        Text.append(text)
+    if (FF is not None):
+        ax = Axes[5]
+        ax.set_xticks([ ])
+        ax.set_xticklabels([ ])
+        ax.set_yticks([ ])
+        ax.set_yticklabels([ ])
+        for j in range(3):
+            text = ax.annotate("{} = {:.4f}".format(c_idx[j], 0.0), xy=(0.1, 1.0 - 0.2*(j + 1)), xycoords='axes fraction', backgroundcolor='white', color='black', fontsize=12, horizontalalignment='left', verticalalignment='bottom', weight='bold')
+            Text.append(text)
 
     # pp.subplots_adjust(left=0.125, bottom=0.1, right=0.9, top=0.9, wspace=0.2, hspace=0.2)
     pp.subplots_adjust(left=0.10, wspace=0.3)

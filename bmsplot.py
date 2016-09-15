@@ -117,7 +117,7 @@ if __name__ == '__main__':
 
         pp.subplots_adjust(left=0.01, wspace=0.3)
 
-        figtr.canvas.show()
+        fig.canvas.show()
 
     if DO_PYMC_BMS:
         mcmc_trace = mcmc_trace_temp

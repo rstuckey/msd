@@ -77,9 +77,6 @@ if __name__ == '__main__':
         sdnu_0 = sdx[:,1]
         sdnu_L = [ 0.0, sdnu_0*2.0 ]
 
-    # count = 0
-    PLOT = False
-
     # Intermediate parameter dict
     C_D = { ck : None for ck in c_idx }
 

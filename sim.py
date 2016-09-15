@@ -144,6 +144,8 @@ if __name__ == '__main__':
         sdz = np.array(NOISE_SD[:2])
         # sdz = np.array([ 0.1, 0.1 ])*0.01
     Z = X + np.random.randn(N, len(x0))*sdz
+
+    # Set the initial measured state equal to the initial true state
     z0 = x0
 
     Nu = Z[:,1]
