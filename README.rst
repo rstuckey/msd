@@ -129,6 +129,8 @@ The best way to run the msd scripts is from within a Jupyter notebook::
 
   jupyter notebook
 
+You can view the msd notebook [here](http://nbviewer.jupyter.org/github/stuckeyr/msd/blob/master/msd.ipynb).
+
 If you want to run the notebook on a separate (local) computer, make sure you set the following in your ".jupyter/jupyter_notebook_config.py" first::
 
   c.NotebookApp.port = 9999

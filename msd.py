@@ -4,8 +4,6 @@ import numpy as np
 import numpy.matlib as ml
 from scipy import interpolate, integrate
 
-import array
-
 pyublas_exists = True
 try:
     import pyublas
@@ -121,7 +119,6 @@ class MSD(object):
         xdot = np.ravel(self.C_M_I*(M_SD + self.M_EF))
 
         if (self.w_func is not None):
-            # xdot += np.nan_to_num(self.w_func(t))
             xdot[1] += np.nan_to_num(self.w_func(t))
 
         return xdot
@@ -163,13 +160,8 @@ class MSD(object):
         # Initialise the model
         self.init()
 
-        # Test rates function
-        # self.rates(x0, T[0])
-
         # Perform the integration
-        # X = integrate.odeint(self.rates, x0, T, args=(d_func,), rtol=1.49012e0, atol=1.49012e0, mxstep=4)
         X = integrate.odeint(self.rates, x0, T, rtol=1.0e-6, atol=1.0e-6)
-        # X = integrate.odeint(self.rates, x0, T)
 
         Xdot = np.zeros((N, len(x0)))
         for n in range(N):

@@ -91,7 +91,7 @@ if __name__ == '__main__':
         msd_fest.set_external_forces(T, E, 'linear_uniform')
     else:
         # Create the model (pure Python)
-        msd_fest = MSD("Mass-Spring-Damper_FMIN_EST")
+        msd_fest = MSD("Mass-Spring-Damper_FMIN_EST (Python)")
         msd_fest.set_external_forces(T, E, 'linear')
 
     c_idx = ['k', 'b', 'd']

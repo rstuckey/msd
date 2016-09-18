@@ -4,7 +4,6 @@
  * 29 Jul 2013                                           *
  *                                                       *
  * Roger Stuckey                                         *
- * Defence Science and Technology Organisation           *
  *********************************************************/
 
 #include <boost/array.hpp>
@@ -24,10 +23,7 @@
 #include <string>
 
 
-
 namespace { // Avoid cluttering the global namespace.
-
-    // using namespace boost::numeric;
 
     typedef boost::array<double, 2> state_type;
     typedef pyublas::numpy_vector<double> vector_type;
@@ -40,12 +36,10 @@ namespace { // Avoid cluttering the global namespace.
     int MAXSIZE = 150;
 
     class Plant
+    // The system plant model
     {
         public:
             double m;
-            // double C_k;
-            // double C_b;
-            // double C_d;
             CoeffMap C;
 
             Plant() : m(30.48)
@@ -97,6 +91,7 @@ namespace { // Avoid cluttering the global namespace.
                 _interp_kind = interp_kind;
             }
             double interp1d_zero(double t) const
+            // Zero-order interpolation of the external force vector
             {
                 int n = 0;
 
@@ -111,51 +106,50 @@ namespace { // Avoid cluttering the global namespace.
                 return _D_S[n - 1];
             }
             double interp1d_linear(double t) const
+            // First-order interpolation of the external force vector, with non-uniform sampling frequency
             {
                 int n = 0;
                 double dddt;
 
                 if (t <= _T_S[0])
                 {
-                    // dddt = (_D_S[1] - _D_S[0])/(_T_S[1] - _T_S[0]);
-                    return _D_S[0]; // - dddt*(_T_S[0] - t);
+                    return _D_S[0];
                 }
                 else if (_T_S[_N_S - 1] <= t)
                 {
-                    // dddt = (_D_S[_N_S - 1] - _D_S[_N_S - 2])/(_T_S[_N_S - 1] - _T_S[_N_S - 2]);
-                    return _D_S[_N_S - 1]; // + dddt*(t - _T_S[_N_S - 1]);
+                    return _D_S[_N_S - 1];
                 }
 
                 while ((n < _N_S - 1) && (_T_S[n] < t))
                     n++;
 
                 dddt = (_D_S[n] - _D_S[n - 1])/(_T_S[n] - _T_S[n - 1]);
-                // std::cout << _D_S[n - 1] + dddt*(t - _T_S[n - 1]) << std::endl;
+
                 return _D_S[n - 1] + dddt*(t - _T_S[n - 1]);
             }
             double interp1d_linear_uniform(double t) const
+            // First-order interpolation of the external force vector, with uniform sampling frequency
             {
                 int n = 0;
                 double dddt;
 
                 if (t <= _T_S[0])
                 {
-                    // dddt = (_D_S[1] - _D_S[0])/(_T_S[1] - _T_S[0]);
-                    return _D_S[0]; // - dddt*(_T_S[0] - t);
+                    return _D_S[0];
                 }
                 else if (_T_S[_N_S - 1] <= t)
                 {
-                    // dddt = (_D_S[_N_S - 1] - _D_S[_N_S - 2])/(_T_S[_N_S - 1] - _T_S[_N_S - 2]);
-                    return _D_S[_N_S - 1]; // + dddt*(t - _T_S[_N_S - 1]);
+                    return _D_S[_N_S - 1];
                 }
 
                 n = (t - _T_S[0])/(_T_S[1] - _T_S[0]) + 1; // will be cast as int
 
                 dddt = (_D_S[n] - _D_S[n - 1])/(_T_S[n] - _T_S[n - 1]);
-                // std::cout << _D_S[n - 1] + dddt*(t - _T_S[n - 1]) << std::endl;
+
                 return _D_S[n - 1] + dddt*(t - _T_S[n - 1]);
             }
             void operator() (const state_type& x, state_type& xdot, double t)
+            // Calculate the state rate from the state, external force and system parameters
             {
                 double d;
 
@@ -189,13 +183,11 @@ namespace { // Avoid cluttering the global namespace.
     };
 
     class Observer
+    // The system observer model (required by odeint)
     {
         public:
-            // ublas::vector<double> T
             vector_type T;
-            // ublas::matrix<double> X;
             matrix_type X;
-            // ublas::vector<double> D;
             vector_type D;
 
             matrix_type Xdot;
@@ -214,28 +206,18 @@ namespace { // Avoid cluttering the global namespace.
             }
     };
 
-    // int integrate(Plant& plant, Observer& observer, double t0, double tN, double dt)
     int integrate(Plant& plant, Observer& observer, double t0, double dt, int N)
+    // Perform the ODE integration over the time vector
     {
-        // int N;
-
         dense_stepper_type stepper = boost::numeric::odeint::make_dense_output(1.0e-6, 1.0e-6, boost::numeric::odeint::runge_kutta_dopri5< state_type >());
 
-        // boost::numeric::odeint::integrate_const(stepper, boost::ref(plant), plant.get_initial_state(), t0, tN, dt, boost::ref(observer));
         state_type x0 = plant.get_initial_state(); // Initial conditions
-
-        // for (int i = 0; i < 2; i++)
-        // {
-        //     observer.X(0, i) = x0[i];
-        // }
-        // observer.idx = 1;
 
         observer.idx = 0;
 
-        // boost::numeric::odeint::integrate_const(stepper, boost::ref(plant), x0, t0, tN, dt, boost::ref(observer));
         boost::numeric::odeint::integrate_n_steps(stepper, boost::ref(plant), x0, t0, dt, N - 1, boost::ref(observer));
-        // N = observer.idx;
 
+        // Update the inertial force vector
         for (int n = 0; n < N; n++)
         {
             observer.D(n) = plant.interp1d_zero(observer.T(n));
@@ -256,52 +238,6 @@ namespace { // Avoid cluttering the global namespace.
         }
 
         return N;
-    };
-
-    class System
-    {
-        public:
-            Plant plant;
-            Observer observer;
-
-            System() : plant(), observer(MAXSIZE) { }
-            // System(Plant& p) : plant(p), observer(MAXSIZE) { }
-
-            void set_initial_state(const vector_type& x0)
-            {
-                plant.set_initial_state(x0);
-            }
-
-            void set_external_forces(const vector_type& T_S, const vector_type& D_S, std::string interp_kind)
-            {
-                plant.set_external_forces(T_S, D_S, interp_kind);
-            }
-
-            // void integrate(MSDS &msds, MSDO &msdo, double t0, double tN, double dt)
-            int integrate(double t0, double tN, double dt)
-            {
-                int N;
-
-                dense_stepper_type stepper = boost::numeric::odeint::make_dense_output(1.0e-6, 1.0e-6, boost::numeric::odeint::runge_kutta_dopri5< state_type >());
-
-                state_type x0 = { { 0.0, 0.0 } }; // Initial conditions
-
-                observer.idx = 0;
-                boost::numeric::odeint::integrate_const(stepper, plant, x0, t0, tN, dt, observer);
-                N = observer.idx;
-
-                // T.reshape(N);
-                // X.reshape(N);
-                // D.reshape(N);
-
-                for (int n = 0; n < N; n++)
-                {
-                    // msdo.D(n) = msds.interp1d_zero(msdo.T(n));
-                    observer.D(n) = plant.interp1d_zero(observer.T(n));
-                }
-
-                return N;
-            }
     };
 }
 

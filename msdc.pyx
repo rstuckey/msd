@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import array
-# from libcpp cimport bool as bool_t
 from cpython cimport bool
 import numpy as np
 import numpy.matlib as ml
@@ -15,6 +14,7 @@ except ImportError:
 
 
 cdef double interp1d_zero(double t, double[:] _T_S, double[:] _D_S):
+    # Zero-order interpolation of the external force vector
 
     cdef int n = 0
     cdef int _N_S = len(_T_S)
@@ -30,6 +30,7 @@ cdef double interp1d_zero(double t, double[:] _T_S, double[:] _D_S):
     return _D_S[n - 1]
 
 cdef double interp1d_linear(double t, double[:] _T_S, double[:] _D_S):
+    # First-order interpolation of the external force vector, with non-uniform sampling frequency
 
     cdef int n = 0
     cdef int _N_S = len(_T_S)
@@ -48,6 +49,7 @@ cdef double interp1d_linear(double t, double[:] _T_S, double[:] _D_S):
     return _D_S[n - 1] + dddt*(t - _T_S[n - 1])
 
 cdef double interp1d_linear_uniform(double t, double[:] _T_S, double[:] _D_S):
+    # First-order interpolation of the external force vector, with uniform sampling frequency
 
     cdef int n = 0
     cdef int _N_S = len(_T_S)
@@ -65,6 +67,7 @@ cdef double interp1d_linear_uniform(double t, double[:] _T_S, double[:] _D_S):
     return _D_S[n - 1] + dddt*(t - _T_S[n - 1])
 
 cdef get_rates(double[:] x, double t, double[:] T_Sa, double[:] D_Sa, bytes interp_kind, double m, double[:] C, bool state_noise, double[:] Ta, double[:] Wa, double[:] xdot):
+    # Calculate the state rate from the state, external force and system parameters
 
     cdef double d
     if (interp_kind == 'zero'):
@@ -140,10 +143,6 @@ class MSD_CYTHON(object):
         """
         Set the model coefficients.
         """
-        # for i in range(len(self.c_idx)):
-        #     ck = self.c_idx[i]
-        #     self.C[ck] = C[ck]
-        #     self.Ca[i] = C[ck]
         for ck, c in C.iteritems():
             if ck in self.c_idx:
                 self.C[ck] = C[ck]
@@ -182,11 +181,9 @@ class MSD_CYTHON(object):
 
         :returns: xdot = system state-rate
         """
-
         self.xa[0] = x[0]
         self.xa[1] = x[1]
 
-        # self.xa = get_arr(self.T_Sa, self.D_Sa, t, self.x)
         get_rates(self.xa, t, self.T_Sa, self.D_Sa, self.interp_kind, self.m, self.Ca, self.state_noise, self.Ta, self.Wa, self.xdota)
 
         return [ self.xdota[0], self.xdota[1] ]
@@ -224,21 +221,8 @@ class MSD_CYTHON(object):
         # Initialise the model
         self.init()
 
-        # Test rates function
-        # self.rates(x0, T[0])
-
-        # cdef array.array T_S = array.array('d', self.T_S)
-        # cdef array.array D_S = array.array('d', self.D_S)
-
-        # cdef int[:] ca = a
-
-
         # Perform the integration
-        # X = integrate.odeint(self.rates, x0, T, args=(d_func,), rtol=1.49012e0, atol=1.49012e0, mxstep=4)
-        # X = integrate.odeint(self.rates, x0, T, rtol=1.0e-6, atol=1.0e-6)
         X = integrate.odeint(self.rates, x0, T, rtol=1.0e-6, atol=1.0e-6)
-
-        # X = integrate.odeint(self.rates, x0, T)
 
         Xdot = np.zeros((N, len(x0)))
         for n in range(N):
