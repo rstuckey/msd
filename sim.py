@@ -106,10 +106,10 @@ if __name__ == '__main__':
     c_idx = ['k', 'b', 'd']
 
     # True parameter set
-    CT = np.array([ msd.get_coeffs()[ck] for ck in c_idx ])
+    CT = [ msd.get_coeffs()[ck] for ck in c_idx ]
 
     # Initial parameter set
-    C0 = np.array([ 0.5*msd.get_coeffs()[ck] for ck in c_idx ])
+    C0 = [ 0.5*msd.get_coeffs()[ck] for ck in c_idx ]
 
     # Initial parameter dict
     CD = dict(zip(c_idx, C0))
