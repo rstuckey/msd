@@ -79,17 +79,10 @@ if __name__ == '__main__':
         N = T.shape[0]
 
         # Create the predefined external force vector
-        D = ml.repmat(d0, N, 1)
-
-        T_S = [ t_s + t_ds for t_s in np.arange(t0, tN, 3.0) for t_ds in [ 0.0, 1.0 ] ]
-        T_S.append(T[N - 1])
-        N_S = len(T_S)
-        D_S = [ d0 + d_ds for t_s in np.arange(t0, tN, 3.0) for d_ds in [ 1.0, 0.0 ] ]
-        D_S.append(d0)
-
-        for t_i in range(0, N_S - 1, 2):
-            # D[np.logical_and((T >= t_s), (T < t_s + 1.0)), 0] = d0 + np.random.randint(-2, 3)*1.0
-            D[np.logical_and((T >= T_S[t_i]), (T < T_S[t_i + 1])), 0] = d0 + 1.0
+        T_S = np.hstack((t0, np.arange(t0 + 1.0, tN + 1.0, 1.0), tN))
+        D_S = np.hstack((d0, np.array([ d0 + ((j % 2)*2 - 1) * 1.0 for j in range(T_S.shape[0] - 2) ]), d0))
+        interpfun = interpolate.interp1d(T_S, D_S, kind='zero', axis=0, bounds_error=False)
+        D = np.array([ [ interpfun(t) ] for t in T ])
 
     # Create the simulation model
     if (MODEL == 'boost'):
