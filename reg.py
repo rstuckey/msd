@@ -96,14 +96,17 @@ if __name__ == '__main__':
     #  http://en.wikipedia.org/wiki/Coefficient_of_determination
     Rsq = 1.0 - SS_err/SS_tot
 
+    C_LS = C.flatten().tolist()
+
     print "            TRUE       EST    {:2.0f}% CONF".format(conf)
     for i in range(len(c_idx)):
-        print "{:5s}: {:10.4f} {:10.4f} +/-{:-.4f}".format(c_idx[i], msd.C[c_idx[i]], C[i, 0], CI[i])
+        print "{:5s}: {:10.4f} {:10.4f} +/-{:-.4f}".format(c_idx[i], msd.C[c_idx[i]], C_LS[i], CI[i])
 
     print "R^2 = %.4f" % Rsq
 
     for i in range(len(c_idx)):
-        msd_est.C[c_idx[i]] = C[i, 0]
+        # msd_est.C[c_idx[i]] = C[i, 0]
+        msd_est.set_coeffs({ 'k': C_LS[0], 'b': C_LS[1], 'd': C_LS[2] })
 
     # Estimated force matrix
     H = np.dot(A, C)
@@ -116,7 +119,7 @@ if __name__ == '__main__':
     Xe, Xedot, Fe = msd_est.integrate(z0, T)
 
     if PLOT_REG:
-        updateplot(fig, Axes, Lines, Text, Xe, Fe, FF, f_max=None, f_txt=None, c_txt=np.ravel(C))
+        updateplot(fig, Axes, Lines, Text, Xe, Fe, FF, f_max=None, f_txt=None, c_txt=C_LS)
 
     # if PLOT_REG:
     #     if ('Axes' not in locals()):

@@ -71,17 +71,20 @@ if __name__ == '__main__':
     if ('D' not in locals()):
         # Sample period
         dt = 0.01
+        # Start and end time
+        t0 = 0.0
+        tN = 15.0
         # Create the time vector
-        T = np.arange(0.0, 15.0, dt)
+        T = np.arange(t0, tN, dt)
         N = T.shape[0]
 
         # Create the predefined external force vector
         D = ml.repmat(d0, N, 1)
 
-        T_S = [ t_s + t_ds for t_s in np.arange(0.0, 15.0, 3.0) for t_ds in [ 0.0, 1.0 ] ]
+        T_S = [ t_s + t_ds for t_s in np.arange(t0, tN, 3.0) for t_ds in [ 0.0, 1.0 ] ]
         T_S.append(T[N - 1])
         N_S = len(T_S)
-        D_S = [ d0 + d_ds for t_s in np.arange(0.0, 15.0, 3.0) for d_ds in [ 1.0, 0.0 ] ]
+        D_S = [ d0 + d_ds for t_s in np.arange(t0, tN, 3.0) for d_ds in [ 1.0, 0.0 ] ]
         D_S.append(d0)
 
         for t_i in range(0, N_S - 1, 2):
