@@ -78,7 +78,7 @@ if __name__ == '__main__':
         sdnu_L = [ 0.0, sdnu_0*2.0 ]
 
     # Intermediate parameter dict
-    C_D = { ck : None for ck in c_idx }
+    CD = { ck : None for ck in c_idx }
 
     # Stochastic variable dict
     P = { }
@@ -100,7 +100,6 @@ if __name__ == '__main__':
 
     for i in range(len(c_idx)):
         ck = c_idx[i]
-        # P[ck] = mc.Uninformative(ck, value=C01[i])
         P[ck] = mc.Uniform(ck, lower=CL[i][0], upper=CL[i][1], value=C0[i])
 
 # ------------------------------------------------------------------------------
@@ -115,40 +114,24 @@ if __name__ == '__main__':
             self.FF = FF
             self.fopt_max = None
             self.it = 0;
-            self.C_D = C_D
+            self.CD = CD
             self.C0 = C0
             self.C = C0
 
         def __call__(self, **kwargs):
-        # @mc.deterministic
-        # def mean(self, k=P['k'], b=P['b'], d=P['d']):
-        #     C = [ k.item(), b.item(), d.item() ]
-
-            # C = np.mat(C0).T
             for i in range(len(c_idx)):
                 ck = c_idx[i]
-                self.C_D[ck] = self.C0[i]
+                self.CD[ck] = self.C0[i]
 
             for ck in kwargs.keys():
-                self.C_D[ck] = kwargs[ck].item()
+                self.CD[ck] = kwargs[ck].item()
                 i = c_idx.index(ck)
                 self.C[i] = kwargs[ck].item()
 
-            # remus_best.set_scaled_coeffs(C_D1)
-            msd_best.set_coeffs(self.C_D)
+            msd_best.set_coeffs(self.CD)
 
             # Compute the response
-            # Xe, Xedot, Fe = msd_best.integrate(z0, T, e_func)
             Xe, Xedot, Fe = msd_best.integrate(z0, T)
-
-            # jri_idx = 0
-            # for j in range(len(x_idx)):
-            #     if (kwargs.keys()[0][0] in x_idx[j]):
-            #         jri_idx = j
-            #         break
-            #
-            # Nue = Xe
-            # dF = Nu[:,jri_idx] - Nue[:,jri_idx]
 
             dF = F - Fe
             fopt_sum = np.sum(dF*dF)
@@ -178,8 +161,6 @@ if __name__ == '__main__':
 
             self.it += 1
 
-            # return Fe
-            # return Nue[:,jri_idx]
             return Xe[:,1]
 
 # ------------------------------------------------------------------------------

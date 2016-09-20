@@ -8,8 +8,6 @@ import numpy as np
 import numpy.matlib as ml
 from scipy import optimize
 
-# import matplotlib.pyplot as pp
-
 pyublas_exists = True
 try:
     from msd import MSD_BOOST
@@ -37,10 +35,8 @@ if __name__ == '__main__':
     if ('ADD_NOISE' not in locals()):
         ADD_NOISE = True
     if ('VERBOSE' not in locals()):
-        # VERBOSE = True
         VERBOSE = False
     if ('PLOT_ESTIM' not in locals()):
-        # PLOT_ESTIM = True
         PLOT_ESTIM = False
     if PLOT_ESTIM:
         from plot import plot, updateplot, clearplot, addplot
@@ -66,15 +62,11 @@ if __name__ == '__main__':
         execfile("sim.py")
         sys.stdout.write("\n")
 
-    # if (PLOT_ESTIM and (not pp.isinteractive())):
-    #     pp.ion()
-
     FF = ml.repmat(None, 50, 1)
 
     if PLOT_ESTIM:
         if (('fig' not in locals()) or (fig is None)):
             fig, Axes, Lines, Text = plot(msd.name, T, E, Z, G, Xe=np.zeros(X.shape), Fe=np.zeros(F.shape), FF=FF)
-            # pp.show()
             fig.canvas.draw()
     else:
         fig, Axes, Lines, Text = ( None, None, None, None )
@@ -98,7 +90,7 @@ if __name__ == '__main__':
 
     if (OPTFUN == 'optimize'):
 
-        print "STATISTICAL OPTIMIZATION:"
+        print "POWELL'S MINIMIZATION:"
 
         class Objfun(object):
 
@@ -111,18 +103,9 @@ if __name__ == '__main__':
                 self.it = 0;
 
             def __call__(self, C, fig, Axes, Lines, Text):
-            # def objfun(C, fig, Axes, Lines): #kws):
-
-                # ( k, b, d ) = C
-                # Fe = k*Z[:,0] + b*Zdot[:,0] + d*E[:,0]
-
-                # sys.stdout.write(".")
-                # sys.stdout.flush()
-
                 msd_fest.set_coeffs({ 'k': C[0], 'b': C[1], 'd': C[2] })
 
                 # Compute the response
-                # Xe, Xedot, Fe = msd_fest.integrate(z0, T, e_func)
                 Xe, Xedot, Fe = msd_fest.integrate(self.z0, self.T)
 
                 # For fmin, fmin_powell, fmin_bfgs, fmin_l_bfgs_b
@@ -130,20 +113,12 @@ if __name__ == '__main__':
                 fopt_sum = np.sum(dF*dF)
 
                 if PLOT_ESTIM:
-                    # updateplot(Lines, Xe, Fe)
-                    # updateplot(kws['fig'], kws['Lines'], Xe, Fe)
-
                     if (self.it < np.size(FF, 0)):
                         self.FF[self.it, 0] = math.log(fopt_sum)
                     else:
                         self.FF = np.roll(self.FF, -1)
                         self.FF[-1, 0] = math.log(fopt_sum)
 
-                    # rescale = False
-                    # if ((self.fopt_lim[0] is None) or (fopt_sum < self.fopt_lim[0])):
-                    #     kws['Axes'][4].set_ylim(bottom=fopt_sum)
-                    #     self.fopt_lim[0] = fopt_sum
-                        # rescale = True
                     f_max = None
                     if ((self.fopt_max is None) or (self.fopt_max < math.log(fopt_sum))):
                         f_max = math.log(fopt_sum) * 1.1
@@ -178,28 +153,21 @@ if __name__ == '__main__':
         objfun = Objfun(z0, T, G, FF)
 
         # Need to start with a nontrivial parameter set to avoid getting stuck in a local minima straight away...
-        C = optimize.fmin_powell(objfun, C0, args=( fig, Axes, Lines, Text ), maxiter=100) #args=tuple({ 'fig': fig, 'Lines': Lines }))
-        # C = optimize.fmin_bfgs(objfun, C0, epsilon=0.1)
-        # (C, fopt, infodict) = optimize.fmin_l_bfgs_b(objfun, C0, approx_grad=True, epsilon=0.1, bounds=[ (-100.0, 0.0), (-20.0, 0.0), (0.0, 2.0) ])
-        # (C, cov) = optimize.leastsq(objfun, C0, epsfcn=0.1)
+        C = optimize.fmin_powell(objfun, C0, args=( fig, Axes, Lines, Text ), maxiter=100)
 
         toc = time.clock() - tic
         print "Time elapsed: {:f} seconds".format(toc)
 
-        C = C.reshape((-1, 1))
+        C_PM = C.tolist()
 
         print
         print "            TRUE      F_EST"
         for i in range(len(c_idx)):
-            print "%5s: %10.4f %10.4f" % (c_idx[i], msd.get_coeffs()[c_idx[i]], np.ravel(C)[i])
+            print "{:5s}: {:10.4f} {:10.4f}".format(ck, msd.get_coeffs()[ck], C_PM[i])
 
-        # for i in range(len(c_idx)):
-        #     msd_fest.C[c_idx[i]] = np.ravel(C)[i]
-        C = np.ravel(C)
-        msd_fest.set_coeffs({ 'k': C[0], 'b': C[1], 'd': C[2] })
+        msd_fest.set_coeffs({ 'k': C_PM[0], 'b': C_PM[1], 'd': C_PM[2] })
 
         # Compute the response
-        # Xe, Xedot, Fe = msd_fest.integrate(z0, T, e_func)
         Xe, Xedot, Fe = msd_fest.integrate(z0, T)
 
         if PLOT_ESTIM:
@@ -209,7 +177,7 @@ if __name__ == '__main__':
 
     if (OPTFUN == 'lmfit'):
 
-        # print "NONLINEAR STATISTICAL OPTIMIZATION:"
+        print "LEVENBERG-MARQUARDT OPTIMIZATION:"
 
         # Define objective function: returns the array to be minimized
         class Fcn2min(object):
@@ -220,44 +188,24 @@ if __name__ == '__main__':
                 self.FF = FF
                 self.fopt_max = None
                 self.it = 0;
+
             def __call__(self, P, **kws):
-        # def fcn2min(P, **kws):
-
-                # k = params['k'].value
-                # b = params['b'].value
-                # d = params['d'].value
-                # C = ( k, b, d )
-                # return objfun(C)
-
-                # sys.stdout.write(".")
-                # sys.stdout.flush()
-
-                # for i in range(len(c_idx)):
-                    # msd_fest.C[c_idx[i]] = C[i]
-                #     msd_fest.C[c_idx[i]] = P[c_idx[i]].value
                 C = [ P[c_idx[i]].value for i in range(len(c_idx)) ]
                 msd_fest.set_coeffs({ 'k': C[0], 'b': C[1], 'd': C[2] })
 
                 # Compute the response
-                # Xe, Xedot, Fe = msd_fest.integrate(z0, T, e_func)
                 Xe, Xedot, Fe = msd_fest.integrate(self.z0, self.T)
 
                 fopt = np.ravel(self.G - Fe)
                 fopt_sum = np.sum(fopt*fopt)
 
                 if PLOT_ESTIM:
-                    # self.FF[self.it, 0] = np.log(np.sum(fopt*fopt))
                     if (self.it < np.size(FF, 0)):
                         self.FF[self.it, 0] = fopt_sum
                     else:
                         self.FF = np.roll(self.FF, -1)
                         self.FF[-1, 0] = fopt_sum
 
-                    # rescale = False
-                    # if ((self.fopt_lim[0] is None) or (fopt_sum < self.fopt_lim[0])):
-                    #     kws['Axes'][4].set_ylim(bottom=fopt_sum)
-                    #     self.fopt_lim[0] = fopt_sum
-                        # rescale = True
                     f_max = None
                     if ((self.fopt_max is None) or (self.fopt_max < fopt_sum)):
                         f_max = fopt_sum * 1.1
@@ -266,7 +214,6 @@ if __name__ == '__main__':
                     f_txt = '{:.4f}'.format(fopt_sum)
 
                     updateplot(kws['fig'], kws['Axes'], kws['Lines'], kws['Text'], Xe, Fe, self.FF, f_max=f_max, f_txt=f_txt, c_txt=C)
-                    # time.sleep(1)
 
                 # For leastsq
                 # fopt = np.ravel(F - Fe)
@@ -286,8 +233,6 @@ if __name__ == '__main__':
         P = lm.Parameters()
         for i in range(len(c_idx)):
             ck = c_idx[i]
-            # params.add(ck, value=msd.C[ck])
-            # params.add(ck, value=msd_est.C[ck])
             P.add(ck, value=C0[i])
 
         tic = time.clock()
@@ -295,30 +240,24 @@ if __name__ == '__main__':
         fcn2min = Fcn2min(z0, T, G, FF)
 
         # Do fit, here with leastsq model
-        # res = lm.minimize(fcn2min, P, method='leastsq', epsfcn=0.1)
-        # { Lines:  Lines }
         res = lm.minimize(fcn2min, P, kws=kws, method='leastsq', epsfcn=0.1)
 
         toc = time.clock() - tic
         print "Time elapsed: {:f} seconds".format(toc)
 
+        C_LM = [ res.params[c_idx[i]].value for i in range(len(c_idx)) ]
+
         print
         print "            TRUE      F_EST"
         for i in range(len(c_idx)):
             ck = c_idx[i]
-            # print "%5s: %10.4f %10.4f" % (ck, msd.C[ck], P[ck].value)
-            print "{:5s}: {:10.4f} {:10.4f}".format(ck, msd.get_coeffs()[ck], res.params[ck].value)
+            print "{:5s}: {:10.4f} {:10.4f}".format(ck, msd.get_coeffs()[ck], C_LM[i])
 
-        # for i in range(len(c_idx)):
-        #     ck = c_idx[i]
-        #     msd_fest.C[ck] = P[ck].value
-        C = [ res.params[c_idx[i]].value for i in range(len(c_idx)) ]
-        msd_fest.set_coeffs({ 'k': C[0], 'b': C[1], 'd': C[2] })
+        msd_fest.set_coeffs({ 'k': C_LM[0], 'b': C_LM[1], 'd': C_LM[2] })
 
         # Compute the response
-        # Xe, Xedot, Fe = msd_fest.integrate(z0, T, e_func)
         Xe, Xedot, Fe = msd_fest.integrate(z0, T)
 
-        # if PLOT_ESTIM:
-        #     clearplot(fig, Lines)
-        #     addplot(fig, Axes, T, Xe, Fe, color='goldenrod')
+        if PLOT_ESTIM:
+            clearplot(fig, Lines)
+            addplot(fig, Axes, T, Xe, Fe, color='goldenrod')
