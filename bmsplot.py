@@ -4,7 +4,7 @@ import copy
 
 import numpy as np
 import matplotlib.pyplot as pp
-import matplotlib.pylab as pl
+import matplotlib.mlab as ml
 
 from pymc.utils import quantiles as calc_quantiles, hpd as calc_hpd
 
@@ -71,9 +71,9 @@ if __name__ == '__main__':
             ax = AxesArr[i, 1]
             ax.grid(color='lightgrey', linestyle=':')
             # Calculate the autocorrelation (raw and detrended)
-            (acorr_lags, acorr_c, acorr_line, acorr_b) = ax.acorr(mcmc_trace[-1][ck], detrend=pl.mlab.detrend_none, linewidth=0.0, markersize=0.0, maxlags=acorr_maxlags, usevlines=False)
+            (acorr_lags, acorr_c, acorr_line, acorr_b) = ax.acorr(mcmc_trace[-1][ck], detrend=ml.detrend_none, linewidth=0.0, markersize=0.0, maxlags=acorr_maxlags, usevlines=False)
             ax.fill_between(acorr_lags, acorr_line.get_ydata(), alpha=0.25, color='crimson', linewidth=0.0)
-            ax.acorr(mcmc_trace[-1][ck], color='crimson', detrend=pl.mlab.detrend_mean, linestyle='-', linewidth=1.5, maxlags=acorr_maxlags)
+            ax.acorr(mcmc_trace[-1][ck], color='crimson', detrend=ml.detrend_mean, linestyle='-', linewidth=1.5, maxlags=acorr_maxlags)
             ax.set_xlim(-acorr_maxlags, acorr_maxlags)
             ax.set_ylim(-0.1, 1.1)
             ax.set_ylabel(C_str[ck], rotation='horizontal')
@@ -96,6 +96,3 @@ if __name__ == '__main__':
         pp.subplots_adjust(left=0.1, wspace=0.3)
 
         fig.canvas.show()
-
-    if DO_PYMC_BMS:
-        mcmc_trace = mcmc_trace_temp
