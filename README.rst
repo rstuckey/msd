@@ -5,7 +5,7 @@
 .. image:: https://github.com/stuckeyr/msd/raw/master/msd_estim_output_plot.png
    :align: center
    :alt: Mass-Spring-Damper Estimation Output Plot
-   :width: 419px
+   :width: 800px
 
 .. class:: center
 

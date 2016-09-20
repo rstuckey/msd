@@ -23,16 +23,7 @@ if __name__ == '__main__':
 
     C_str = { 'k' : r'$k$', 'b' : r'$b$', 'd' : r'$d$' }
 
-    if DO_PYMC_BMS:
-        C_str.update({ 'z' : r'$z$' })
-
     stoch_list_plot = [ c_idx ]
-
-    if DO_PYMC_BMS:
-        stoch_list_plot.append(c_idx_ext)
-
-    if DO_PYMC_BMS:
-        mcmc_trace_temp = copy.deepcopy(mcmc_trace)
 
     for j in range(len(stoch_list_plot)):
 
