@@ -5,6 +5,7 @@ import sys
 import time
 
 import numpy as np
+import numpy.matlib as ml
 import pymc as mc
 
 # import matplotlib.pyplot as pp
@@ -66,6 +67,8 @@ if __name__ == '__main__':
     if ((MODEL == 'cython') and (not cython_exists)):
         print WARN, "Warning: cython does not exist! Setting MODEL = 'python'", ENDC
         MODEL = 'python'
+    if ('ITER_LIM' not in locals()):
+        ITER_LIM = 1000
 
     if ('NUM_SAMPLES' in locals()):
         Nc = NUM_SAMPLES
@@ -136,7 +139,7 @@ if __name__ == '__main__':
 
         tic = time.time()
 
-        mmap.fit(method='fmin_powell', iterlim=1000, tol=.0001, verbose=0)
+        mmap.fit(method='fmin_powell', iterlim=ITER_LIM, tol=0.001, verbose=0)
         mmap.revert_to_max()
 
         print

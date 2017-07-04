@@ -55,6 +55,8 @@ if __name__ == '__main__':
     if ((OPTFUN == 'lmfit') and (not lmfit_exists)):
         print "Warning: lmfit does not exist! Setting OPTFUN = 'optimize'"
         OPTFUN = 'optimize'
+    if ('MAXFUN' not in locals()):
+        MAXFUN = 100
 
     if ('msd' not in locals()): # sim has not been run
         sys.stdout.write("Running sim...")
@@ -153,16 +155,20 @@ if __name__ == '__main__':
         objfun = Objfun(z0, T, G, FF)
 
         # Need to start with a nontrivial parameter set to avoid getting stuck in a local minima straight away...
-        C = optimize.fmin_powell(objfun, C0, args=( fig, Axes, Lines, Text ), maxiter=100)
+        C = optimize.fmin_powell(objfun, C0, args=( fig, Axes, Lines, Text ), maxiter=100, maxfun=MAXFUN)
 
         toc = time.clock() - tic
         print "Time elapsed: {:f} seconds".format(toc)
+
+        # print "Number of iterations: {:f}".format(iter)
+        # print "Number of function evaluations: {:f}".format(funcalls)
 
         C_PM = C.tolist()
 
         print
         print "            TRUE      F_EST"
         for i in range(len(c_idx)):
+            ck = c_idx[i]
             print "{:5s}: {:10.4f} {:10.4f}".format(ck, msd.get_coeffs()[ck], C_PM[i])
 
         msd_fest.set_coeffs({ 'k': C_PM[0], 'b': C_PM[1], 'd': C_PM[2] })

@@ -2,6 +2,7 @@
 
 import numpy as np
 import numpy.matlib as ml
+from scipy import interpolate
 
 pyublas_exists = True
 try:
@@ -42,13 +43,13 @@ if __name__ == '__main__':
 
     # Plot flag
     if ('PLOT_SIM' not in locals()):
-        PLOT_SIM = False
+        PLOT_SIM = True
     if PLOT_SIM:
         from plot import plot
 
     # Simulation model
     if ('MODEL' not in locals()):
-        MODEL = 'python'
+        MODEL = 'cython'
     if ((MODEL == 'boost') and (not pyublas_exists)):
         print "Warning: pyublas does not exist! Setting MODEL = 'python'"
         MODEL = 'python'
@@ -165,5 +166,6 @@ if __name__ == '__main__':
 
     if PLOT_SIM:
         FF = ml.repmat(None, 50, 1)
-        fig, Axes, Lines, Text = plot(msd.name, T, E, Z, G, Xe=np.zeros(X.shape), Fe=np.zeros(F.shape), FF=FF)
+        # fig, Axes, Lines, Text = plot(msd.name, T, E, Z, G, Xe=np.zeros(X.shape), Fe=np.zeros(F.shape), FF=FF)
+        fig, Axes, Lines, Text = plot(msd.name, T, E, Z, G, Xe=None, Fe=None, FF=None)
         fig.canvas.draw()
