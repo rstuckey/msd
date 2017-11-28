@@ -53,7 +53,7 @@ Assuming you have Python installed on your system, make sure you also have the d
 
   sudo apt-get install libpython-dev
 
-Clone this repository
+Clone this repository::
 
   git clone https://github.com/stuckeyr/msd.git
 
@@ -79,10 +79,10 @@ Download PyUblas::
   git clone http://git.tiker.net/trees/pyublas.git
   cd pyublas
 
-Create and Customize a Configuration File ".aksetup-defaults.py" with the following text::
+Create and Customize a Configuration File ".aksetup-defaults.py" in your home directory with the following text::
 
   BOOST_BINDINGS_INC_DIR = ['$HOME/pool/include/boost-bindings']
-  BOOST_INC_DIR = ['$HOME/pool/include/boost']
+  BOOST_INC_DIR = ['$HOME/pool/include']
   BOOST_LIB_DIR = ['$HOME/pool/lib']
   BOOST_PYTHON_LIBNAME = ['boost_python']
 
