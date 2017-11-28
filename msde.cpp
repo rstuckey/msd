@@ -259,12 +259,12 @@ BOOST_PYTHON_MODULE(msde)
         .def(pyublas::by_value_rw_member("Xdot", &Observer::Xdot))
         .def(pyublas::by_value_rw_member("F", &Observer::F))
         ;
-    class_<System>("System")
-        .def(pyublas::by_value_rw_member("plant", &System::plant))
-        .def(pyublas::by_value_rw_member("observer", &System::observer))
-        .def("set_initial_state", &System::set_initial_state)
-        .def("set_external_forces", &System::set_external_forces)
-        .def("integrate", &System::integrate);
-        ;
+    // class_<System>("System")
+    //     .def(pyublas::by_value_rw_member("plant", &System::plant))
+    //     .def(pyublas::by_value_rw_member("observer", &System::observer))
+    //     .def("set_initial_state", &System::set_initial_state)
+    //     .def("set_external_forces", &System::set_external_forces)
+    //     .def("integrate", &System::integrate);
+    //     ;
     def("integrate", integrate);
 }
