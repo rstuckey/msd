@@ -39,7 +39,7 @@ if __name__ == '__main__':
         fig, AxesArr = pp.subplots(nr, nc, figsize=(10.0, 6.0))
 
         acorr_maxlags = 100
-        hist_num_bins = min(50, max(10, Nc[-1]/250))
+        hist_num_bins = min(50, max(10, int(Nc[-1]/250)))
         hist_hpd_alpha = 0.05
 
         Nccs = [ 0 ] + Nc

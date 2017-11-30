@@ -54,14 +54,14 @@ def sample_likelihood(model, iter, verbose=False):
             for datum in model.observed_stochastics | model.potentials:
                 loglikes[i] += datum.logp
             if verbose:
-                print "Loglike = %.6e" % loglikes[i]
+                print("Loglike = %.6e") % loglikes[i]
 
             if len (model.potentials) > 0:
                 for pot in model.potentials:
                     logpots[i] += pot.logp
 
     except KeyboardInterrupt:
-        print 'Halted at sample ', i, ' of ', iter
+        print("Halted at sample {:d} of {:d}".format(i, iter))
 
     return loglikes[:i], logpots[:i]
 
@@ -94,7 +94,7 @@ def weight(models, iter, priors = None, verbose=False):
     i=0
     for model in models:
         if verbose:
-            print 'Model ', i
+            print("Model {:d}".format(i))
         loglikes[model], logpots[model] = sample_likelihood(model, iter, verbose)
         i+=1
 

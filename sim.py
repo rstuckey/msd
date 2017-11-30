@@ -12,7 +12,7 @@ except ImportError:
 
 cython_exists = True
 try:
-    from msdc import MSD_CYTHON
+    from msd.msdc import MSD_CYTHON
 except ImportError:
     cython_exists = False
 
@@ -51,10 +51,10 @@ if __name__ == '__main__':
     if ('MODEL' not in locals()):
         MODEL = 'cython'
     if ((MODEL == 'boost') and (not pyublas_exists)):
-        print "Warning: pyublas does not exist! Setting MODEL = 'python'"
+        print("Warning: pyublas does not exist! Setting MODEL = 'python'")
         MODEL = 'python'
     if ((MODEL == 'cython') and (not cython_exists)):
-        print "Warning: cython does not exist! Setting MODEL = 'python'"
+        print("Warning: cython does not exist! Setting MODEL = 'python'")
         MODEL = 'python'
 
     # Zero the RNG seed
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     if ZERO_SEED:
         np.random.seed(1)
     else:
-        print "Warning: Random seed will be automatically set."
+        print("Warning: Random seed will be automatically set.")
 
     # Initial system state and external force input
     x0 = np.zeros((2, ))
@@ -168,4 +168,4 @@ if __name__ == '__main__':
         FF = ml.repmat(None, 50, 1)
         # fig, Axes, Lines, Text = plot(msd.name, T, E, Z, G, Xe=np.zeros(X.shape), Fe=np.zeros(F.shape), FF=FF)
         fig, Axes, Lines, Text = plot(msd.name, T, E, Z, G, Xe=None, Fe=None, FF=None)
-        fig.canvas.draw()
+        # fig.canvas.draw()

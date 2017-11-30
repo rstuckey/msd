@@ -21,7 +21,7 @@ def main():
     LIBRARY_DIRS = [ ]
     LIBRARY_DIRS = [ os.path.join(os.environ.get("HOME"), "pool", "lib") ]
 #    LIBRARIES = ['boost_python-py27']
-    LIBRARIES = ['boost_python']
+    LIBRARIES = ['boost_python3']
     EXTRA_DEFINES = { }
     conf = { }
     conf["CXXFLAGS"] = ['-Wno-sign-compare']
@@ -59,7 +59,7 @@ def main():
                     #     extra_link_args=conf["LDFLAGS"],
                     #     ),
                     NumpyExtension(
-                        "msde",
+                        "msd.msde",
                         ["msde.cpp"],
                         include_dirs=INCLUDE_DIRS,
                         library_dirs=LIBRARY_DIRS,

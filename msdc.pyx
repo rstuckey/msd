@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
-import array
-from cpython cimport bool
+from cpython cimport bool, str
 import numpy as np
-import numpy.matlib as ml
-from scipy import interpolate, integrate
+cimport numpy as np
+from scipy import integrate
 
 cython_exists = True
 try:
@@ -66,7 +65,7 @@ cdef double interp1d_linear_uniform(double t, double[:] _T_S, double[:] _D_S):
 
     return _D_S[n - 1] + dddt*(t - _T_S[n - 1])
 
-cdef get_rates(double[:] x, double t, double[:] T_Sa, double[:] D_Sa, bytes interp_kind, double m, double[:] C, bool state_noise, double[:] Ta, double[:] Wa, double[:] xdot):
+cdef get_rates(double[:] x, double t, double[:] T_Sa, double[:] D_Sa, str interp_kind, double m, double[:] C, bool state_noise, double[:] Ta, double[:] Wa, double[:] xdot):
     # Calculate the state rate from the state, external force and system parameters
 
     cdef double d

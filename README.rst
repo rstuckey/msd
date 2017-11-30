@@ -40,9 +40,9 @@ Install Boost. I like to keep it local::
 
   tar xvf boost_X_XX_X.tar.bz2
   cd boost_X_XX_X
-  ./bootstrap.sh
+  ./bootstrap.sh --with-python=/opt/anaconda3/bin/python3.6
   mkdir $HOME/pool
-  ./b2 install --prefix=$HOME/pool
+  ./b2 install --with-python --prefix=$HOME/pool
   cd ..
 
 Tell the dynamic linker about Boost (add to your .bashrc)::
@@ -84,25 +84,25 @@ Create and Customize a Configuration File ".aksetup-defaults.py" in your home di
   BOOST_BINDINGS_INC_DIR = ['$HOME/pool/include/boost-bindings']
   BOOST_INC_DIR = ['$HOME/pool/include']
   BOOST_LIB_DIR = ['$HOME/pool/lib']
-  BOOST_PYTHON_LIBNAME = ['boost_python']
+  BOOST_PYTHON_LIBNAME = ['boost_python3']
 
 Note: I have found it necessary to expand the $HOME environment variable.
 
 Build PyUblas::
 
-  sudo python setup.py install
+  python setup.py install
   cd ..
 
 Install (copy) the include files into your Boost directory::
 
-  cp -r pyublas/include/pyublas/ ~/pool/include/
+  cp -r pyublas/pyublas/include/pyublas/ ~/pool/include/
 
 The instructions to install Pyublas are also here: http://documen.tician.de/pyublas/installing.html
 
 Finally, build the Boost msd model, "msde"::
 
   cd msd
-  python setup.py build
+  python setup.py build_ext --inplace
 
 If you encounter a compiler error: "... '_1' was not declared in this scope ...", add the following directive to $HOME/pool/include/boost/python/exception_translator.hpp and $HOME/pool/include/boost/python/iterator.hpp, after the include of boost/bind.hpp::
 
@@ -110,17 +110,13 @@ If you encounter a compiler error: "... '_1' was not declared in this scope ..."
 
 Also, expand any reference to _1 and _2 with boost::placeholders::_1 and boost::placeholders::_2, respectively.
 
-If that goes ok, link to the shared object::
-
-  ln -fs build/lib.linux-x86_64-2.7/msde.so
+If that goes ok, you should have a shared object at msd/msde*.so
 
 In the same directory build the Cython extension::
 
-  python setup-cython.py build
+  python setup-cython.py build_ext --inplace
 
-Again, if that goes ok, link to the shared object::
-
-  ln -fs build/lib.linux-x86_64-2.7/msd/msdc.so
+Again, if that goes ok, you should have a shared object at msd/msdc*.so
 
 Execution
 =========

@@ -14,7 +14,7 @@ except ImportError:
 
 cython_exists = True
 try:
-    from msdc import MSD_CYTHON
+    from msd.msdc import MSD_CYTHON
 except ImportError:
     cython_exists = False
 
@@ -33,10 +33,10 @@ if __name__ == '__main__':
     if ('MODEL' not in locals()):
         MODEL = 'python'
     if ((MODEL == 'boost') and (not pyublas_exists)):
-        print "Warning: pyublas does not exist! Setting MODEL = 'python'"
+        print("Warning: pyublas does not exist! Setting MODEL = 'python'")
         MODEL = 'python'
     if ((MODEL == 'cython') and (not cython_exists)):
-        print "Warning: cython does not exist! Setting MODEL = 'python'"
+        print("Warning: cython does not exist! Setting MODEL = 'python'")
         MODEL = 'python'
 
     if ('msd' not in locals()): # sim has not been run
@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     kws = { 'fig': fig, 'Axes': Axes, 'Lines': Lines, 'Text': Text }
 
-    print "LINEAR REGRESSION:"
+    print("LINEAR REGRESSION:")
 
     if (MODEL == 'boost'):
         # Create the model (Boost extension)
@@ -98,11 +98,12 @@ if __name__ == '__main__':
 
     C_LS = C.flatten().tolist()
 
-    print "            TRUE       EST    {:2.0f}% CONF".format(conf)
+    print("            TRUE       EST    {:2.0f}% CONF".format(conf))
     for i in range(len(c_idx)):
-        print "{:5s}: {:10.4f} {:10.4f} +/-{:-.4f}".format(c_idx[i], msd.C[c_idx[i]], C_LS[i], CI[i])
+        ck = c_idx[i]
+        print("{:5s}: {:10.4f} {:10.4f} +/-{:-.4f}".format(c_idx[i], msd.get_coeffs()[ck], C_LS[i], CI[i]))
 
-    print "R^2 = %.4f" % Rsq
+    print("R^2 = {:.4f}".format(Rsq))
 
     for i in range(len(c_idx)):
         # msd_est.C[c_idx[i]] = C[i, 0]

@@ -16,7 +16,7 @@ except ImportError:
 
 cython_exists = True
 try:
-    from msdc import MSD_CYTHON
+    from msd.msdc import MSD_CYTHON
 except ImportError:
     cython_exists = False
 
@@ -44,16 +44,16 @@ if __name__ == '__main__':
     if ('MODEL' not in locals()):
         MODEL = 'python'
     if ((MODEL == 'boost') and (not pyublas_exists)):
-        print "Warning: pyublas does not exist! Setting MODEL = 'python'"
+        print("Warning: pyublas does not exist! Setting MODEL = 'python'")
         MODEL = 'python'
     if ((MODEL == 'cython') and (not cython_exists)):
-        print "Warning: cython does not exist! Setting MODEL = 'python'"
+        print("Warning: cython does not exist! Setting MODEL = 'python'")
         MODEL = 'python'
 
     if ('OPTFUN' not in locals()):
         OPTFUN = 'optimize'
     if ((OPTFUN == 'lmfit') and (not lmfit_exists)):
-        print "Warning: lmfit does not exist! Setting OPTFUN = 'optimize'"
+        print("Warning: lmfit does not exist! Setting OPTFUN = 'optimize'")
         OPTFUN = 'optimize'
     if ('MAXFUN' not in locals()):
         MAXFUN = 100
@@ -92,7 +92,7 @@ if __name__ == '__main__':
 
     if (OPTFUN == 'optimize'):
 
-        print "POWELL'S MINIMIZATION:"
+        print("POWELL'S MINIMIZATION:")
 
         class Objfun(object):
 
@@ -158,18 +158,18 @@ if __name__ == '__main__':
         C = optimize.fmin_powell(objfun, C0, args=( fig, Axes, Lines, Text ), maxiter=100, maxfun=MAXFUN)
 
         toc = time.clock() - tic
-        print "Time elapsed: {:f} seconds".format(toc)
+        print("Time elapsed: {:f} seconds").format(toc)
 
-        # print "Number of iterations: {:f}".format(iter)
-        # print "Number of function evaluations: {:f}".format(funcalls)
+        # print("Number of iterations: {:f}").format(iter)
+        # print("Number of function evaluations: {:f}").format(funcalls)
 
         C_PM = C.tolist()
 
         print
-        print "            TRUE      F_EST"
+        print("            TRUE      F_EST")
         for i in range(len(c_idx)):
             ck = c_idx[i]
-            print "{:5s}: {:10.4f} {:10.4f}".format(ck, msd.get_coeffs()[ck], C_PM[i])
+            print("{:5s}: {:10.4f} {:10.4f}").format(ck, msd.get_coeffs()[ck], C_PM[i])
 
         msd_fest.set_coeffs({ 'k': C_PM[0], 'b': C_PM[1], 'd': C_PM[2] })
 
@@ -183,7 +183,7 @@ if __name__ == '__main__':
 
     if (OPTFUN == 'lmfit'):
 
-        print "LEVENBERG-MARQUARDT OPTIMIZATION:"
+        print("LEVENBERG-MARQUARDT OPTIMIZATION:")
 
         # Define objective function: returns the array to be minimized
         class Fcn2min(object):
@@ -249,15 +249,15 @@ if __name__ == '__main__':
         res = lm.minimize(fcn2min, P, kws=kws, method='leastsq', epsfcn=0.1)
 
         toc = time.clock() - tic
-        print "Time elapsed: {:f} seconds".format(toc)
+        print("Time elapsed: {:f} seconds").format(toc)
 
         C_LM = [ res.params[c_idx[i]].value for i in range(len(c_idx)) ]
 
         print
-        print "            TRUE      F_EST"
+        print("            TRUE      F_EST")
         for i in range(len(c_idx)):
             ck = c_idx[i]
-            print "{:5s}: {:10.4f} {:10.4f}".format(ck, msd.get_coeffs()[ck], C_LM[i])
+            print("{:5s}: {:10.4f} {:10.4f}").format(ck, msd.get_coeffs()[ck], C_LM[i])
 
         msd_fest.set_coeffs({ 'k': C_LM[0], 'b': C_LM[1], 'd': C_LM[2] })
 

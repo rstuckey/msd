@@ -15,7 +15,7 @@ except ImportError:
 
 cython_exists = True
 try:
-    from msdc import MSD_CYTHON
+    from msd.msdc import MSD_CYTHON
 except ImportError:
     cython_exists = False
 
@@ -37,10 +37,10 @@ if __name__ == '__main__':
     if ('MODEL' not in locals()):
         MODEL = 'python'
     if ((MODEL == 'boost') and (not pyublas_exists)):
-        print "Warning: pyublas does not exist! Setting MODEL = 'python'"
+        print("Warning: pyublas does not exist! Setting MODEL = 'python'")
         MODEL = 'python'
     if ((MODEL == 'cython') and (not cython_exists)):
-        print "Warning: cython does not exist! Setting MODEL = 'python'"
+        print("Warning: cython does not exist! Setting MODEL = 'python'")
         MODEL = 'python'
 
     if ('ZERO_SEED' not in locals()):
@@ -166,8 +166,9 @@ if __name__ == '__main__':
 # ------------------------------------------------------------------------------
 
     def eval_prec(**kwargs):
-        std = kwargs.values()[0]
-        return 1.0/std**2.0
+        if 'std' in kwargs:
+            return 1.0/kwargs['std']**2.0
+        return None
 
     meanfcn = Meanfcn(z0, T, G, kws, FF)
 

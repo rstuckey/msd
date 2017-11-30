@@ -41,7 +41,7 @@ def calc_bpic(mcmc):
             stochastic.value = mean_value
 
         except KeyError:
-            print FAIL, "No trace available for %s. DIC value may not be valid." % stochastic.__name__, ENDC
+            print(FAIL, "No trace available for {:s}. DIC value may not be valid.".format(stochastic.__name__), ENDC)
 
     # Return twice deviance minus deviance at means
     return 3*mean_deviance - 2*mcmc.deviance
@@ -173,17 +173,17 @@ class MyMAP(mc.MAP):
         for stochastic in self.stochastics:
             p[self._slices[stochastic]] = np.ravel(stochastic.value)
             if self.ccount == 0:
-                print stochastic.__name__,
+                print(stochastic.__name__,)
             if stochastic.__name__ in self.direc_list:
                 i = self.direc_list.index(stochastic.__name__)
                 j = self._slices[stochastic]
                 d[i, j] = 1.0
             # i += 1
         if self.ccount == 0:
-            print
+            print()
             # print self.stochastics
-            print d
-            print p
+            print(d)
+            print(p)
 
         def callback(p):
             pass
@@ -202,7 +202,7 @@ class MyMAP(mc.MAP):
             raise ValueError('Method unknown.')
 
         if self.ccount == 0:
-            print d
+            print(d)
 
         self.ccount += 1
 

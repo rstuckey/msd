@@ -18,7 +18,7 @@ except ImportError:
 
 cython_exists = True
 try:
-    from msdc import MSD_CYTHON
+    from msd.msdc import MSD_CYTHON
 except ImportError:
     cython_exists = False
 
@@ -62,10 +62,10 @@ if __name__ == '__main__':
     if ('MODEL' not in locals()):
         MODEL = 'python'
     if ((MODEL == 'boost') and (not pyublas_exists)):
-        print WARN, "Warning: pyublas does not exist! Setting MODEL = 'python'", ENDC
+        print(WARN, "Warning: pyublas does not exist! Setting MODEL = 'python'", ENDC)
         MODEL = 'python'
     if ((MODEL == 'cython') and (not cython_exists)):
-        print WARN, "Warning: cython does not exist! Setting MODEL = 'python'", ENDC
+        print(WARN, "Warning: cython does not exist! Setting MODEL = 'python'", ENDC)
         MODEL = 'python'
     if ('ITER_LIM' not in locals()):
         ITER_LIM = 1000
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     if ZERO_SEED:
         np.random.seed(1)
     else:
-        print WARN, "Warning: Random seed will be automatically set.", ENDC
+        print(WARN, "Warning: Random seed will be automatically set.", ENDC)
 
     if ('PYMC_DB' not in locals()):
         PYMC_DB = 'ram' # [ 'ram, 'pickle', 'hdf5']
@@ -95,23 +95,24 @@ if __name__ == '__main__':
     if PYMC_DB != 'ram':
         if ('OUTPUT_ID' not in locals()):
             OUTPUT_ID = time.strftime("%y%m%d", time.localtime())
-            print WARN, "Warning: No OUTPUT_ID specified. Using '%s' instead." % OUTPUT_ID, ENDC
+            print(WARN, "Warning: No OUTPUT_ID specified. Using '{:s}' instead.".format(OUTPUT_ID), ENDC)
         OUTPUT_DIR = os.path.join("..", "output", OUTPUT_ID)
         if (not os.path.exists(OUTPUT_DIR)):
             os.makedirs(OUTPUT_DIR)
 
     if ('msd' not in locals()): # sim has not been run
-        print HEAD, "SIMULATING", ENDC
-        execfile("sim.py")
+        print(HEAD, "SIMULATING", ENDC)
+        with open('sim.py') as f:
+            exec(f.read())
 
-    print HEAD, "BUILDING PROBABILITY DISTRIBUTION MODEL", ENDC
+    print(HEAD, "BUILDING PROBABILITY DISTRIBUTION MODEL", ENDC)
 
     if ('c_idx' not in locals()):
         c_idx = [ 'k', 'b', 'd' ]
 
     FF = ml.repmat(None, 50, 1)
 
-    print
+    print()
 
     if PLOT_MAP or PLOT_MCMC:
         if (('fig' not in locals()) or (fig is None)):
@@ -122,13 +123,14 @@ if __name__ == '__main__':
 
     kws = { 'fig': fig, 'Axes': Axes, 'Lines': Lines, 'Text': Text }
 
-    execfile("bms_model.py")
+    with open('bms_model.py') as f:
+        exec(f.read())
 
     if DO_PYMC_MAP:
 
-        print HEAD, "BAYES ESTIMATE (MAXIMUM A-PRIORI):", ENDC
+        print(HEAD, "BAYES ESTIMATE (MAXIMUM A-PRIORI):", ENDC)
         if VERBOSE_ORIG:
-            print WARN, "Switching VERBOSE to False for this...", ENDC
+            print(WARN, "Switching VERBOSE to False for this...", ENDC)
             VERBOSE = False
         PLOT = PLOT_MAP
 
@@ -142,12 +144,12 @@ if __name__ == '__main__':
         mmap.fit(method='fmin_powell', iterlim=ITER_LIM, tol=0.001, verbose=0)
         mmap.revert_to_max()
 
-        print
+        print()
 
         toc = time.time() - tic
-        print time.strftime("Time elapsed: %Hh %Mm %Ss", time.gmtime(toc))
+        print(time.strftime("Time elapsed: %Hh %Mm %Ss", time.gmtime(toc)))
 
-        print
+        print()
 
         mmap_vars_value = { ck : mmap.get_node(ck).value.item() for ck in c_idx }
 
@@ -156,9 +158,9 @@ if __name__ == '__main__':
             ck = c_idx[i]
             C[i] = mmap_vars_value[ck]
 
-        print "            TRUE      M_EST"
+        print("            TRUE      M_EST")
         for i in range(len(c_idx)):
-            print "%5s: %10.4f %10.4f" % (c_idx[i], msd.get_coeffs()[c_idx[i]], C[i])
+            print("%5s: %10.4f %10.4f".format(c_idx[i], msd.get_coeffs()[c_idx[i]], C[i]))
 
         for i in range(len(c_idx)):
             ck = c_idx[i]
@@ -172,13 +174,13 @@ if __name__ == '__main__':
 
     if DO_PYMC_MCMC:
 
-        print HEAD, "BAYES ESTIMATE (MARKOV CHAIN MONTE CARLO):", ENDC
+        print(HEAD, "BAYES ESTIMATE (MARKOV CHAIN MONTE CARLO):", ENDC)
 
         if VERBOSE:
-            print WARN, "Switching VERBOSE to False for this...", ENDC
+            print(WARN, "Switching VERBOSE to False for this...", ENDC)
             VERBOSE = False
         if PLOT_MCMC:
-            print WARN, "Switch PLOT_MCMC to False for this...", ENDC
+            print(WARN, "Switch PLOT_MCMC to False for this...", ENDC)
             PLOT_MCMC = False
 
         PLOT = PLOT_MCMC
@@ -211,8 +213,8 @@ if __name__ == '__main__':
         tic = time.time()
 
         for k in range(len(Nc)):
-            print
-            print OKBL, "Chain %d:" % k, ENDC
+            print()
+            print(OKBL, "Chain {:d}:".format(k), ENDC)
             mcmc.sample(Nc[k], burn=0, thin=1, tune_interval=1000, save_interval=None, progress_bar=True)
 
         mcmc_stats = [ mcmc.stats(chain=k) for k in range(len(Nc)) ]
@@ -228,10 +230,10 @@ if __name__ == '__main__':
 
         mcmc_trace_all = { ck : np.hstack((mcmc_trace[k][ck] for k in range(len(Nc)))) for ck in stoch_list }
 
-        print
+        print()
 
         toc = time.time() - tic
-        print time.strftime("Time elapsed: %Hh %Mm %Ss", time.gmtime(toc))
+        print(time.strftime("Time elapsed: %Hh %Mm %Ss", time.gmtime(toc)))
 
         A_mcmc = np.vstack(( mcmc_trace[-1][ck] for ck in c_idx ))
         Cove_mcmc = np.cov(A_mcmc)
@@ -253,10 +255,10 @@ if __name__ == '__main__':
         mean_deviance = np.mean(mcmc_deviance[-1])
         PD = mcmc.DIC - mean_deviance
 
-        print "            TRUE      B_EST"
+        print("            TRUE      B_EST")
         for i in range(len(c_idx)):
             ck = c_idx[i]
-            print "{:5s}: {:10.4f} {:10.4f}".format(ck, msd.get_coeffs()[ck], C_MC[i])
+            print("{:5s}: {:10.4f} {:10.4f}".format(ck, msd.get_coeffs()[ck], C_MC[i]))
 
         msd_best.set_coeffs({ 'k': C_MC[0], 'b': C_MC[1], 'd': C_MC[2] })
 
