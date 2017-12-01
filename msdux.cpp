@@ -1,6 +1,6 @@
 
 /*********************************************************
- * Mass-Spring-Damper Simulation Python Boost Extension. *
+ * Mass-Spring-Damper Simulation PyUblas Extension.      *
  * 29 Jul 2013                                           *
  *                                                       *
  * Roger Stuckey                                         *
@@ -241,7 +241,7 @@ namespace { // Avoid cluttering the global namespace.
     };
 }
 
-BOOST_PYTHON_MODULE(msde)
+BOOST_PYTHON_MODULE(msdux)
 {
     using namespace boost::python;
 

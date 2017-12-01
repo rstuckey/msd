@@ -102,7 +102,7 @@ The instructions to install Pyublas are also here: http://documen.tician.de/pyub
 Finally, build the Boost msd model, "msde"::
 
   cd msd
-  python setup.py build_ext --inplace
+  python setup-pyublas.py build_ext --inplace
 
 If you encounter a compiler error: "... '_1' was not declared in this scope ...", add the following directive to $HOME/pool/include/boost/python/exception_translator.hpp and $HOME/pool/include/boost/python/iterator.hpp, after the include of boost/bind.hpp::
 

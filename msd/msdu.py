@@ -3,23 +3,30 @@
 import numpy as np
 from scipy import integrate
 
-from msd import msdbx
+pyublas_exists = True
+try:
+    import pyublas
+except ImportError:
+    pyublas_exists = False
+
+if pyublas_exists:
+    from msd import msdux
 
 
 # ------------------------------------------------------------------------------
-# MSD_BOOST class
+# MSD_PYUBLAS class
 # ------------------------------------------------------------------------------
-class MSD_BOOST(object):
+class MSD_PYUBLAS(object):
     """
-    The MSD_BOOST class utilises the msdbx Boost Python C++ extension
+    The MSD_PYUBLAS class utilises the msdux PyUblas C++ extension
     to simulate a a Mass-Spring-Damper system.
     """
     # System parameters
-    m = 30.48 # this is duplicated in msdbx.cpp
+    m = 30.48 # this is duplicated in msdux.cpp
 
     def __init__(self, name, N, **kwargs):
         """
-        Initialise the MSD_BOOST object.
+        Initialise the MSD_PYUBLAS object.
 
         :param: name  = system name
         """
@@ -30,8 +37,8 @@ class MSD_BOOST(object):
         for key in kwargs:
             self.__dict__[key] = kwargs[key]
 
-        self.plant = msdbx.Plant(self.N)
-        self.observer = msdbx.Observer(self.N)
+        self.plant = msdux.Plant()
+        self.observer = msdux.Observer(self.N)
 
     def __str__(self):
         return self.name
@@ -52,7 +59,7 @@ class MSD_BOOST(object):
         """
         Set the external force interpolant points.
         """
-        self.plant.set_external_forces(T_S.tolist(), D_S.tolist(), kind)
+        self.plant.set_external_forces(np.array(T_S), np.array(D_S), kind)
 
     def forces(self, xdot, x):
         """
@@ -82,18 +89,13 @@ class MSD_BOOST(object):
         """
         dt = T[1] - T[0]
         # N = T.shape[0]
-        self.plant.set_initial_state(x0.tolist())
-        # N = msdbx.integrate(self.plant, self.observer, T_S[0], T_S[N_S - 1], dt)
-        # msdbx.integrate(self.plant, self.observer, T[0], dt, self.N - 1)
-        msdbx.integrate(self.plant, self.observer, T[0], dt, self.N)
-
-        # X = np.array(self.observer.X)
-        # Xdot = np.array(self.observer.Xdot)
-        # F = np.array(self.observer.F).reshape((-1, 1))
+        self.plant.set_initial_state(x0)
+        # N = msdux.integrate(self.plant, self.observer, T_S[0], T_S[N_S - 1], dt)
+        # msdux.integrate(self.plant, self.observer, T[0], dt, self.N - 1)
+        msdux.integrate(self.plant, self.observer, T[0], dt, self.N)
 
         X = self.observer.X
         Xdot = self.observer.Xdot
-        F = self.observer.F #.reshape((-1, 1))
+        F = self.observer.F.reshape((-1, 1))
 
-        # These are all lists, not numpy arrays!
         return X, Xdot, F
