@@ -6,7 +6,7 @@ from scipy import interpolate
 
 pyublas_exists = True
 try:
-    from msd import MSD_BOOST
+    from msd.msdu import MSD_PYUBLAS
 except ImportError:
     pyublas_exists = False
 
@@ -15,6 +15,12 @@ try:
     from msd.msdc import MSD_CYTHON
 except ImportError:
     cython_exists = False
+
+boost_exists = True
+try:
+    from msd.msdb import MSD_BOOST
+except ImportError:
+    boost_exists = False
 
 from msd import MSD
 
@@ -50,11 +56,14 @@ if __name__ == '__main__':
     # Simulation model
     if ('MODEL' not in locals()):
         MODEL = 'cython'
-    if ((MODEL == 'boost') and (not pyublas_exists)):
+    if ((MODEL == 'pyublas') and (not pyublas_exists)):
         print("Warning: pyublas does not exist! Setting MODEL = 'python'")
         MODEL = 'python'
     if ((MODEL == 'cython') and (not cython_exists)):
         print("Warning: cython does not exist! Setting MODEL = 'python'")
+        MODEL = 'python'
+    if ((MODEL == 'boost') and (not boost_exists)):
+        print("Warning: boost does not exist! Setting MODEL = 'python'")
         MODEL = 'python'
 
     # Zero the RNG seed
@@ -86,17 +95,29 @@ if __name__ == '__main__':
         D = np.array([ [ interpfun(t) ] for t in T ])
 
     # Create the simulation model
-    if (MODEL == 'boost'):
-        # Boost extension
-        msd = MSD_BOOST("Mass-Spring-Damper (Boost)", N)
+    if (MODEL == 'python'):
+        # Pure Python
+        msd = MSD("Mass-Spring-Damper (Python)")
         msd.set_external_forces(T_S, D_S, 'zero')
     elif (MODEL == 'cython'):
         # Cython
         msd = MSD_CYTHON("Mass-Spring-Damper (Cython)")
         msd.set_external_forces(T_S, D_S, 'zero')
-    else:
-        # Pure Python
-        msd = MSD("Mass-Spring-Damper (Python)")
+    elif (MODEL == 'pyublas'):
+        # PyUblas extension
+        msd = MSD_PYUBLAS("Mass-Spring-Damper (PyUblas)", N)
+        msd.set_external_forces(T_S, D_S, 'zero')
+    elif (MODEL == 'numba'):
+        # Numba JIT
+        msd = MSD_NUMBA(N)
+        msd.set_external_forces(T_S, D_S, 'zero')
+    elif (MODEL == 'numba_jc'):
+        # Numba JIT
+        msd = MSD_NUMBA_JC(N)
+        msd.set_external_forces(T_S, D_S, 0)
+    elif (MODEL == 'boost'):
+        # Boost extension
+        msd = MSD_BOOST("Mass-Spring-Damper (Boost)", N)
         msd.set_external_forces(T_S, D_S, 'zero')
 
     # Identification keys

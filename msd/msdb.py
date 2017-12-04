@@ -30,7 +30,7 @@ class MSD_BOOST(object):
         for key in kwargs:
             self.__dict__[key] = kwargs[key]
 
-        self.plant = msdbx.Plant(self.N)
+        self.plant = msdbx.Plant()
         self.observer = msdbx.Observer(self.N)
 
     def __str__(self):
@@ -52,7 +52,10 @@ class MSD_BOOST(object):
         """
         Set the external force interpolant points.
         """
-        self.plant.set_external_forces(T_S.tolist(), D_S.tolist(), kind)
+        # Squeeze out any superfluous dimensions and convert to lists
+        T_S = T_S.tolist()
+        D_S = D_S.squeeze().tolist()
+        self.plant.set_external_forces(T_S, D_S, kind)
 
     def forces(self, xdot, x):
         """
@@ -82,18 +85,20 @@ class MSD_BOOST(object):
         """
         dt = T[1] - T[0]
         # N = T.shape[0]
+        # print("Setting initial state!")
         self.plant.set_initial_state(x0.tolist())
         # N = msdbx.integrate(self.plant, self.observer, T_S[0], T_S[N_S - 1], dt)
         # msdbx.integrate(self.plant, self.observer, T[0], dt, self.N - 1)
+        # print("Integrating!")
         msdbx.integrate(self.plant, self.observer, T[0], dt, self.N)
 
-        # X = np.array(self.observer.X)
-        # Xdot = np.array(self.observer.Xdot)
-        # F = np.array(self.observer.F).reshape((-1, 1))
+        # print("Copying!")
+        # This conversion is slow!
+        X = np.array(self.observer.X)
+        Xdot = np.array(self.observer.Xdot)
+        F = np.array(self.observer.F).reshape((-1, 1))
+        # X = self.observer.X
+        # Xdot = self.observer.Xdot
+        # F = self.observer.F
 
-        X = self.observer.X
-        Xdot = self.observer.Xdot
-        F = self.observer.F #.reshape((-1, 1))
-
-        # These are all lists, not numpy arrays!
         return X, Xdot, F

@@ -10,7 +10,7 @@ from scipy import optimize
 
 pyublas_exists = True
 try:
-    from msd import MSD_BOOST
+    from msd.msdu import MSD_PYUBLAS
 except ImportError:
     pyublas_exists = False
 
@@ -19,6 +19,12 @@ try:
     from msd.msdc import MSD_CYTHON
 except ImportError:
     cython_exists = False
+
+boost_exists = True
+try:
+    from msd.msdb import MSD_BOOST
+except ImportError:
+    boost_exists = False
 
 lmfit_exists = True
 try:
@@ -43,11 +49,14 @@ if __name__ == '__main__':
 
     if ('MODEL' not in locals()):
         MODEL = 'python'
-    if ((MODEL == 'boost') and (not pyublas_exists)):
+    if ((MODEL == 'pyublas') and (not pyublas_exists)):
         print("Warning: pyublas does not exist! Setting MODEL = 'python'")
         MODEL = 'python'
     if ((MODEL == 'cython') and (not cython_exists)):
         print("Warning: cython does not exist! Setting MODEL = 'python'")
+        MODEL = 'python'
+    if ((MODEL == 'boost') and (not boost_exists)):
+        print("Warning: boost does not exist! Setting MODEL = 'python'")
         MODEL = 'python'
 
     if ('OPTFUN' not in locals()):
@@ -75,18 +84,31 @@ if __name__ == '__main__':
 
     kws = { 'fig': fig, 'Axes': Axes, 'Lines': Lines, 'Text': Text }
 
-    if (MODEL == 'boost'):
-        # Create the model (Boost extension)
-        msd_fest = MSD_BOOST("Mass-Spring-Damper_FMIN_EST (Boost)", N)
-        msd_fest.set_external_forces(T, E, 'linear_uniform')
+    # Create the simulation model
+    if (MODEL == 'python'):
+        # Pure Python
+        msd_fest = MSD("Mass-Spring-Damper_FMIN_EST")
+        msd_fest.set_external_forces(T, E, 'linear_unifom')
     elif (MODEL == 'cython'):
-        # Create the model (Boost extension)
+        # Cython
         msd_fest = MSD_CYTHON("Mass-Spring-Damper_FMIN_EST (Cython)")
         msd_fest.set_external_forces(T, E, 'linear_uniform')
-    else:
-        # Create the model (pure Python)
-        msd_fest = MSD("Mass-Spring-Damper_FMIN_EST (Python)")
-        msd_fest.set_external_forces(T, E, 'linear')
+    elif (MODEL == 'pyublas'):
+        # PyUblas extension
+        msd_fest = MSD_PYUBLAS("Mass-Spring-Damper_FMIN_EST (PyUblas)", N)
+        msd_fest.set_external_forces(T, E, 'linear_unifom')
+    elif (MODEL == 'numba'):
+        # Numba JIT
+        msd_fest = MSD_NUMBA(N)
+        msd_fest.set_external_forces(T, E, 'linear_unifom')
+    elif (MODEL == 'numba_jc'):
+        # Numba JIT
+        msd_fest = MSD_NUMBA_JC(N)
+        msd_fest.set_external_forces(T, E, 1)
+    elif (MODEL == 'boost'):
+        # Boost extension
+        msd_fest = MSD_BOOST("Mass-Spring-Damper_FMIN_EST (Boost)", N)
+        msd_fest.set_external_forces(T, E, 'linear_uniform')
 
     c_idx = ['k', 'b', 'd']
 
@@ -108,7 +130,10 @@ if __name__ == '__main__':
                 msd_fest.set_coeffs({ 'k': C[0], 'b': C[1], 'd': C[2] })
 
                 # Compute the response
-                Xe, Xedot, Fe = msd_fest.integrate(self.z0, self.T)
+                if (MODEL in ['python', 'cython', 'pyublas', 'numba', 'boost']):
+                    Xe, Xedot, Fe = msd_fest.integrate(self.z0, self.T)
+                elif (MODEL == 'numba_jc'):
+                    Xe, Xedot, Fe = msd_integrate(msd_fest, self.z0, self.T)
 
                 # For fmin, fmin_powell, fmin_bfgs, fmin_l_bfgs_b
                 dF = G - Fe

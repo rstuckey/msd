@@ -12,7 +12,7 @@ import pymc as mc
 
 pyublas_exists = True
 try:
-    from msd import MSD_BOOST
+    from msd.msdu import MSD_PYUBLAS
 except ImportError:
     pyublas_exists = False
 
@@ -21,6 +21,12 @@ try:
     from msd.msdc import MSD_CYTHON
 except ImportError:
     cython_exists = False
+
+boost_exists = True
+try:
+    from msd.msdb import MSD_BOOST
+except ImportError:
+    boost_exists = False
 
 from msd import MSD
 
@@ -61,12 +67,16 @@ if __name__ == '__main__':
 
     if ('MODEL' not in locals()):
         MODEL = 'python'
-    if ((MODEL == 'boost') and (not pyublas_exists)):
+    if ((MODEL == 'pyublas') and (not pyublas_exists)):
         print(WARN, "Warning: pyublas does not exist! Setting MODEL = 'python'", ENDC)
         MODEL = 'python'
     if ((MODEL == 'cython') and (not cython_exists)):
         print(WARN, "Warning: cython does not exist! Setting MODEL = 'python'", ENDC)
         MODEL = 'python'
+    if ((MODEL == 'boost') and (not boost_exists)):
+        print("Warning: boost does not exist! Setting MODEL = 'python'")
+        MODEL = 'python'
+
     if ('ITER_LIM' not in locals()):
         ITER_LIM = 1000
 

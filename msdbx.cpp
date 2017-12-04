@@ -18,8 +18,6 @@
 #include <boost/python/stl_iterator.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
-// #include <pyublas/numpy.hpp>
-
 #include <iostream>
 #include <map>
 #include <string>
@@ -28,8 +26,6 @@
 namespace msd_boost { // Avoid cluttering the global namespace.
 
     typedef boost::array<double, 2> state_type;
-    // typedef pyublas::numpy_vector<double> vector_type;
-    // typedef pyublas::numpy_matrix<double> matrix_type;
     typedef std::vector<double> vector_type;
     typedef std::vector<vector_type> matrix_type;
     typedef boost::numeric::odeint::result_of::make_dense_output< boost::numeric::odeint::runge_kutta_dopri5< state_type > >::type dense_stepper_type;
@@ -57,11 +53,11 @@ namespace msd_boost { // Avoid cluttering the global namespace.
             double m;
             CoeffMap C;
 
-            Plant(int N) : m(30.48)
+            Plant() : m(30.48)
             {
-                _T_S.resize(N);
-                _D_S.resize(N);
-                _N_S = N;
+                // _T_S.resize(N_S);
+                // _D_S.resize(N_S);
+                _N_S = 0;
 
                 C = boost::assign::map_list_of ("k", -50.0) ("b", -10.0) ("d", 1.0) ("z", 0.0);
             }
@@ -105,8 +101,15 @@ namespace msd_boost { // Avoid cluttering the global namespace.
             }
             void set_external_forces(const boost::python::list& T_S, const boost::python::list& D_S, std::string interp_kind)
             {
+                // for (int i = 0; i < boost::python::len(T_S); i++)
+                // {
+                //     _T_S[i] = boost::python::extract<double>(T_S[i]);
+                //     _D_S[i] = boost::python::extract<double>(D_S[i]);
+                // }
                 _T_S = to_std_vector<double>(T_S);
+                // This will only work if D_S is a 1d list
                 _D_S = to_std_vector<double>(D_S);
+                _N_S = _T_S.size();
                 _interp_kind = interp_kind;
             }
             double interp1d_zero(double t) const
@@ -219,18 +222,21 @@ namespace msd_boost { // Avoid cluttering the global namespace.
             list_type F_L;
 
             Observer(int N) : idx(0) {
+                // _N_S = N;
+                _N = N;
+
                 T.resize(N);
                 X.resize(N);
                 D.resize(N);
                 Xdot.resize(N);
                 F.resize(N);
-                for (int n = 0; n < N; n++)
+                for (int n = 0; n < N; ++n)
                 {
                     X[n].resize(2);
                     Xdot[n].resize(2);
 
                     boost::python::list x;
-                    for (int i = 0; i < 2; i++)
+                    for (int i = 0; i < 2; ++i)
                     {
                         x.append(0.0);
                     }
@@ -242,10 +248,13 @@ namespace msd_boost { // Avoid cluttering the global namespace.
 
             void operator() (const state_type& x, const double t)
             {
-                T[idx] = t;
-                X[idx][0] = x[0];
-                X[idx][1] = x[1];
-                idx++;
+                // The index can exceed the length of X
+                if ((idx >= 0) && (idx < _N)) {
+                    T[idx] = t;
+                    X[idx][0] = x[0];
+                    X[idx][1] = x[1];
+                    idx++;
+                }
             }
 
             vector_type get_time_vector() {
@@ -254,6 +263,9 @@ namespace msd_boost { // Avoid cluttering the global namespace.
             void set_time_vector(const vector_type& T_) {
                 T = T_;
             }
+
+        private:
+            int _N;
     };
 
     int integrate(Plant& plant, Observer& observer, double t0, double dt, int N)
@@ -268,19 +280,19 @@ namespace msd_boost { // Avoid cluttering the global namespace.
         boost::numeric::odeint::integrate_n_steps(stepper, boost::ref(plant), x0, t0, dt, N - 1, boost::ref(observer));
 
         // Update the inertial force vector
-        for (int n = 0; n < N; n++)
+        for (int n = 0; n < N; ++n)
         {
             observer.D[n] = plant.interp1d_zero(observer.T[n]);
             state_type x;
             state_type xdot;
             double f;
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < 2; ++i)
             {
                 x[i] = observer.X[n][i];
                 observer.X_L[n][i] = x[i];
             }
             plant(x, xdot, observer.T[n]);
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < 2; ++i)
             {
                 observer.Xdot[n][i] = xdot[i];
                 observer.Xdot_L[n][i] = xdot[i];
@@ -302,12 +314,10 @@ BOOST_PYTHON_MODULE(msdbx)
     class_<vector_type>("vector_type")
         .def(vector_indexing_suite< vector_type >())
         ;
-
     class_<matrix_type>("matrix_type")
         .def(vector_indexing_suite< matrix_type >())
         ;
-
-    class_<Plant>("Plant", init<int>())
+    class_<Plant>("Plant")
         .def("get_coeffs", &Plant::get_coeffs)
         .def("set_coeffs", &Plant::set_coeffs)
         .def("get_initial_state", &Plant::get_initial_state)
@@ -321,19 +331,6 @@ BOOST_PYTHON_MODULE(msdbx)
         .def("get_time_vector", &Observer::get_time_vector)
         .def("set_time_vector", &Observer::set_time_vector)
         ;
-    // class_<Observer>("Observer", init<int>())
-    //     .def(pyublas::by_value_rw_member("T", &Observer::T))
-    //     .def(pyublas::by_value_rw_member("X", &Observer::X))
-    //     .def(pyublas::by_value_rw_member("D", &Observer::D))
-    //     .def(pyublas::by_value_rw_member("Xdot", &Observer::Xdot))
-    //     .def(pyublas::by_value_rw_member("F", &Observer::F))
-    //     ;
-    // class_<System>("System")
-    //     .def(pyublas::by_value_rw_member("plant", &System::plant))
-    //     .def(pyublas::by_value_rw_member("observer", &System::observer))
-    //     .def("set_initial_state", &System::set_initial_state)
-    //     .def("set_external_forces", &System::set_external_forces)
-    //     .def("integrate", &System::integrate);
-    //     ;
+
     def("integrate", integrate);
 }

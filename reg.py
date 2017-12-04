@@ -8,7 +8,7 @@ from scipy import linalg, stats
 
 pyublas_exists = True
 try:
-    from msd import MSD_BOOST
+    from msd.msdu import MSD_PYUBLAS
 except ImportError:
     pyublas_exists = False
 
@@ -17,6 +17,12 @@ try:
     from msd.msdc import MSD_CYTHON
 except ImportError:
     cython_exists = False
+
+boost_exists = True
+try:
+    from msd.msdb import MSD_BOOST
+except ImportError:
+    boost_exists = False
 
 from msd import MSD
 
@@ -32,11 +38,14 @@ if __name__ == '__main__':
 
     if ('MODEL' not in locals()):
         MODEL = 'python'
-    if ((MODEL == 'boost') and (not pyublas_exists)):
+    if ((MODEL == 'pyublas') and (not pyublas_exists)):
         print("Warning: pyublas does not exist! Setting MODEL = 'python'")
         MODEL = 'python'
     if ((MODEL == 'cython') and (not cython_exists)):
         print("Warning: cython does not exist! Setting MODEL = 'python'")
+        MODEL = 'python'
+    if ((MODEL == 'boost') and (not boost_exists)):
+        print("Warning: boost does not exist! Setting MODEL = 'python'")
         MODEL = 'python'
 
     if ('msd' not in locals()): # sim has not been run
@@ -59,18 +68,31 @@ if __name__ == '__main__':
 
     print("LINEAR REGRESSION:")
 
-    if (MODEL == 'boost'):
-        # Create the model (Boost extension)
-        msd_est = MSD_BOOST("Mass-Spring-Damper_FMIN_EST (Boost)", N)
-        msd_est.set_external_forces(T, E, 'linear_uniform')
+    # Create the simulation model
+    if (MODEL == 'python'):
+        # Pure Python
+        msd_est = MSD("Mass-Spring-Damper_FMIN_EST")
+        msd_est.set_external_forces(T, E, 'linear_unifom')
     elif (MODEL == 'cython'):
-        # Create the model (Boost extension)
+        # Cython
         msd_est = MSD_CYTHON("Mass-Spring-Damper_FMIN_EST (Cython)")
         msd_est.set_external_forces(T, E, 'linear_uniform')
-    else:
-        # Create the model (pure Python)
-        msd_est = MSD("Mass-Spring-Damper_FMIN_EST")
-        msd_est.set_external_forces(T, E, 'linear')
+    elif (MODEL == 'pyublas'):
+        # PyUblas extension
+        msd_est = MSD_PYUBLAS("Mass-Spring-Damper_FMIN_EST (PyUblas)", N)
+        msd_est.set_external_forces(T, E, 'linear_unifom')
+    elif (MODEL == 'numba'):
+        # Numba JIT
+        msd_est = MSD_NUMBA(N)
+        msd_est.set_external_forces(T, E, 'linear_unifom')
+    elif (MODEL == 'numba_jc'):
+        # Numba JIT
+        msd_est = MSD_NUMBA_JC(N)
+        msd_est.set_external_forces(T, E, 1)
+    elif (MODEL == 'boost'):
+        # Boost extension
+        msd_est = MSD_BOOST("Mass-Spring-Damper_FMIN_EST (Boost)", N)
+        msd_est.set_external_forces(T, E, 'linear_uniform')
 
     c_idx = ['k', 'b', 'd']
 
@@ -116,8 +138,10 @@ if __name__ == '__main__':
     # e_func = interpolate.interp1d(T, E, kind='linear', axis=0, bounds_error=False)
 
     # Compute the response
-    # Xe, Xedot, Fe = msd_est.integrate(z0, T, e_func)
-    Xe, Xedot, Fe = msd_est.integrate(z0, T)
+    if (MODEL in ['python', 'cython', 'pyublas', 'numba', 'boost']):
+        Xe, Xedot, Fe = msd_est.integrate(z0, T)
+    elif (MODEL == 'numba_jc'):
+        Xe, Xedot, Fe = msd_integrate(msd_est, z0, T)
 
     if PLOT_REG:
         updateplot(fig, Axes, Lines, Text, Xe, Fe, FF, f_max=None, f_txt=None, c_txt=C_LS)
