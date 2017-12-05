@@ -99,7 +99,7 @@ if __name__ == '__main__':
         msd_fest.set_external_forces(T, E, 'linear_unifom')
     elif (MODEL == 'numba'):
         # Numba JIT
-        msd_fest = MSD_NUMBA(N)
+        msd_fest = MSD_NUMBA("Mass-Spring-Damper_FMIN_EST (Numba)", N)
         msd_fest.set_external_forces(T, E, 'linear_unifom')
     elif (MODEL == 'numba_jc'):
         # Numba JIT

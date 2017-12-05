@@ -80,7 +80,7 @@ cdef get_rates(double[:] x, double t, double[:] T_Sa, double[:] D_Sa, str interp
     if state_noise:
         w = interp1d_linear_uniform(t, Ta, Wa)
 
-    xdot[0] = 1.0/m*(0.0*x[0] +   m*x[1] +   0.0)
+    xdot[0] = 1.0/m*( 0.0*x[0] +    m*x[1] +    0.0)
     xdot[1] = 1.0/m*(C[0]*x[0] + C[1]*x[1] + C[2]*d) + w
 
 

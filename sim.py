@@ -109,7 +109,7 @@ if __name__ == '__main__':
         msd.set_external_forces(T_S, D_S, 'zero')
     elif (MODEL == 'numba'):
         # Numba JIT
-        msd = MSD_NUMBA(N)
+        msd = MSD_NUMBA("Mass-Spring-Damper (Numba)", N)
         msd.set_external_forces(T_S, D_S, 'zero')
     elif (MODEL == 'numba_jc'):
         # Numba JIT

@@ -217,12 +217,12 @@ namespace msd_boost { // Avoid cluttering the global namespace.
 
             int idx;
 
+            // The following boost::python::lists will be empty until integrate is called.
             list_type X_L;
             list_type Xdot_L;
             list_type F_L;
 
             Observer(int N) : idx(0) {
-                // _N_S = N;
                 _N = N;
 
                 T.resize(N);
@@ -234,15 +234,14 @@ namespace msd_boost { // Avoid cluttering the global namespace.
                 {
                     X[n].resize(2);
                     Xdot[n].resize(2);
-
-                    boost::python::list x;
-                    for (int i = 0; i < 2; ++i)
-                    {
-                        x.append(0.0);
-                    }
-                    X_L.append(x);
-                    Xdot_L.append(x);
-                    F_L.append(x);
+                    // boost::python::list x;
+                    // for (int i = 0; i < 2; ++i)
+                    // {
+                    //     x.append(0.0);
+                    // }
+                    // X_L.append(x);
+                    // Xdot_L.append(x);
+                    // F_L.append(x);
                 }
             }
 
@@ -279,27 +278,50 @@ namespace msd_boost { // Avoid cluttering the global namespace.
 
         boost::numeric::odeint::integrate_n_steps(stepper, boost::ref(plant), x0, t0, dt, N - 1, boost::ref(observer));
 
+        // We must re-initialize the lists, since we are forced to using append for assignment (below).
+        // This is terribly inefficient...
+        while (boost::python::len(observer.X_L) > 0)
+            observer.X_L.pop();
+        while (boost::python::len(observer.Xdot_L) > 0)
+            observer.Xdot_L.pop();
+        while (boost::python::len(observer.F_L) > 0)
+            observer.F_L.pop();
+
         // Update the inertial force vector
         for (int n = 0; n < N; ++n)
         {
             observer.D[n] = plant.interp1d_zero(observer.T[n]);
             state_type x;
             state_type xdot;
+
+            boost::python::list x_L;
             double f;
             for (int i = 0; i < 2; ++i)
             {
                 x[i] = observer.X[n][i];
-                observer.X_L[n][i] = x[i];
+                // Note there is no easy way to assign values to elements in a boost::python::list
+                // We could pop and insert, as below, but that would defeat the purpose of
+                // pre-sizing the list in the first place. We are thus forced to build our list as
+                // it is computed using two append statements.
+                x_L.append(x[i]);
             }
+            observer.X_L.append(x_L);
+            // observer.X_L.pop(n);
+            // observer.X_L.insert(n, x_L);
+
             plant(x, xdot, observer.T[n]);
+
+            boost::python::list xdot_L;
             for (int i = 0; i < 2; ++i)
             {
                 observer.Xdot[n][i] = xdot[i];
-                observer.Xdot_L[n][i] = xdot[i];
+                xdot_L.append(xdot[i]);
             }
+            observer.Xdot_L.append(xdot_L);
+
             plant.forces(xdot, f);
             observer.F[n] = f;
-            observer.F_L[n] = f;
+            observer.F_L.append(f);
         }
 
         return N;

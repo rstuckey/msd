@@ -71,19 +71,19 @@ if __name__ == '__main__':
     # Create the simulation model
     if (MODEL == 'python'):
         # Pure Python
-        msd_est = MSD("Mass-Spring-Damper_FMIN_EST")
+        msd_est = MSD("Mass-Spring-Damper_REG_EST")
         msd_est.set_external_forces(T, E, 'linear_unifom')
     elif (MODEL == 'cython'):
         # Cython
-        msd_est = MSD_CYTHON("Mass-Spring-Damper_FMIN_EST (Cython)")
+        msd_est = MSD_CYTHON("Mass-Spring-Damper_REG_EST (Cython)")
         msd_est.set_external_forces(T, E, 'linear_uniform')
     elif (MODEL == 'pyublas'):
         # PyUblas extension
-        msd_est = MSD_PYUBLAS("Mass-Spring-Damper_FMIN_EST (PyUblas)", N)
+        msd_est = MSD_PYUBLAS("Mass-Spring-Damper_REG_EST (PyUblas)", N)
         msd_est.set_external_forces(T, E, 'linear_unifom')
     elif (MODEL == 'numba'):
         # Numba JIT
-        msd_est = MSD_NUMBA(N)
+        msd_est = MSD_NUMBA("Mass-Spring-Damper_REG_EST (Numba)", N)
         msd_est.set_external_forces(T, E, 'linear_unifom')
     elif (MODEL == 'numba_jc'):
         # Numba JIT
@@ -91,7 +91,7 @@ if __name__ == '__main__':
         msd_est.set_external_forces(T, E, 1)
     elif (MODEL == 'boost'):
         # Boost extension
-        msd_est = MSD_BOOST("Mass-Spring-Damper_FMIN_EST (Boost)", N)
+        msd_est = MSD_BOOST("Mass-Spring-Damper_REG_EST (Boost)", N)
         msd_est.set_external_forces(T, E, 'linear_uniform')
 
     c_idx = ['k', 'b', 'd']

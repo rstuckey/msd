@@ -96,7 +96,7 @@ class MSD_BOOST(object):
         # This conversion is slow!
         X = np.array(self.observer.X)
         Xdot = np.array(self.observer.Xdot)
-        F = np.array(self.observer.F).reshape((-1, 1))
+        F = np.array(self.observer.F) #.reshape((-1, 1))
         # X = self.observer.X
         # Xdot = self.observer.Xdot
         # F = self.observer.F

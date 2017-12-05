@@ -5,7 +5,7 @@ import numpy.matlib as ml
 from scipy import interpolate, integrate
 
 # Simulation model
-MODEL = 'boost' # ['python', 'cython', 'pyublas', 'numba', boost']
+MODEL = 'numba_jc' # ['python', 'cython', 'pyublas', 'numba', 'numba_jc', boost']
 
 if (MODEL == 'python'):
     # Pure Python
@@ -76,7 +76,7 @@ elif (MODEL == 'pyublas'):
     msd.set_external_forces(T_S, D_S, 'zero')
 elif (MODEL == 'numba'):
     # Numba JIT
-    msd = MSD_NUMBA(N)
+    msd = MSD_NUMBA("Mass-Spring-Damper (Numba)", N)
     msd.set_external_forces(T_S, D_S, 'zero')
 elif (MODEL == 'numba_jc'):
     # Numba JIT
@@ -90,11 +90,14 @@ elif (MODEL == 'boost'):
 # Identification keys
 c_idx = ['k', 'b', 'd']
 
-# True parameter set
-CT = [ msd.get_coeffs()[ck] for ck in c_idx ]
-
-# Initial parameter set
-C0 = [ 0.5*msd.get_coeffs()[ck] for ck in c_idx ]
+if (MODEL in ['python', 'cython', 'pyublas', 'numba', 'boost']):
+	# True parameter set
+	CT = [ msd.get_coeffs()[ck] for ck in c_idx ]
+	# Initial parameter set
+	C0 = [ 0.5*msd.get_coeffs()[ck] for ck in c_idx ]
+elif (MODEL == 'numba_jc'):
+	CT = msd.get_coeffs()
+	C0 = 0.5*msd.get_coeffs()
 
 # Add any state noise
 if (STATE_NOISE_SD > 0.0):

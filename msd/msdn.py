@@ -3,7 +3,7 @@
 import numpy as np
 from scipy import integrate
 
-from numba import jit, jitclass
+from numba import jit, jitclass, njit
 from numba import f8, i1, b1
 
 
@@ -93,11 +93,14 @@ class MSD_NUMBA(object):
     """
     The MSD_NUMBA class represents a Mass-Spring-Damper system.
     """
-    def __init__(self, N):
+    # System parameters
+    m = 30.48
+
+    def __init__(self, name, N):
         """
         Initialise the msd object.
         """
-        self.m = 30.48
+        self.name = name
 
         self.interp_map = { 'zero': 0, 'linear_uniform': 1, 'linear': 2 }
         self.interp_kind = 'linear'
@@ -134,10 +137,10 @@ class MSD_NUMBA(object):
         """
         Set the model coefficient array.
         """
-        for ck, c in C.iteritems():
-            if ck in self.c_idx:
+        for i in range(len(self.c_idx)):
+            ck = self.c_idx[i]
+            if ck in C:
                 self.C[ck] = C[ck]
-                i = self.c_idx.index(ck)
                 self.Ca[i] = C[ck]
 
     def set_external_forces(self, T_S, D_S, kind):
@@ -239,6 +242,7 @@ class MSD_NUMBA(object):
 # ------------------------------------------------------------------------------
 spec = [
     ('m', f8),
+    ('N', i1),
     ('interp_enum', i1),
     ('xa', f8[:]),
     ('xdota', f8[:]),
@@ -247,7 +251,11 @@ spec = [
     ('D_Sa', f8[:]),
     ('state_noise', b1),
     ('Ta', f8[:]),
-    ('Wa', f8[:])
+    ('Wa', f8[:]),
+    # ('T', f8[:]),
+    # ('X', f8[:,:]),
+    # ('Xdot', f8[:,:]),
+    # ('F', f8[:,:])
 ]
 @jitclass(spec)
 class MSD_NUMBA_JC(object):
@@ -259,6 +267,7 @@ class MSD_NUMBA_JC(object):
         Initialise the msd object.
         """
         self.m = 30.48
+        self.N = N
 
         self.interp_enum = 2
 
@@ -276,6 +285,11 @@ class MSD_NUMBA_JC(object):
         # self.Wa = np.array([ 0.0 ])
         self.Ta = np.zeros((N,))
         self.Wa = np.zeros((N,))
+
+        # self.T = np.zeros((N,))
+        # self.X = np.zeros((N, len(self.xa)))
+        # self.Xdot = np.zeros((N, len(self.xa)))
+        # self.F = np.zeros((N, 1))
 
     def init(self):
         pass
@@ -338,6 +352,21 @@ class MSD_NUMBA_JC(object):
 
         return [ self.xdota[0], self.xdota[1] ]
 
+    def all_rates(self, X, T):
+        """
+        Calculate the complete system state-rate matrix.
+
+        :returns: Xdot = system state-rate matrix
+        """
+        N = T.shape[0]
+        Xdot = np.zeros((N, 2))
+        for n in range(N):
+            xdot = self.rates(X[n], T[n])
+            for i in range(2):
+                Xdot[n, i] = xdot[i]
+
+        return Xdot
+
     def forces(self, xdot, x):
         """
         Calculate the forces from recorded state data.
@@ -352,6 +381,34 @@ class MSD_NUMBA_JC(object):
         f = self.m*xpddot
 
         return f
+
+    def all_forces(self, Xdot, X):
+        """
+        Calculate the complete system state-rate matrix.
+
+        :returns: Xdot = system state-rate matrix
+        """
+        N = X.shape[0]
+        F = np.zeros((N,))
+        for n in range(N):
+            F[n] = self.forces(Xdot[n], X[n])
+        return F
+
+    def add_state_noise(self, T, W):
+        """
+        Set the state noise interpolant points.
+        """
+#         self.T = T.copy()
+#         self.W = W.copy()
+
+#         self.Ta = np.array(T)
+#         self.Wa = np.array(W)
+        for i in range(len(T)):
+            self.Ta[i] = T[i]
+        for i in range(len(W)):
+            self.Wa[i] = W[i]
+
+        self.state_noise = True
 
     def interp1d_zero(self, t, _T_S, _D_S):
         # Zero-order interpolation of the external force vector
@@ -428,7 +485,8 @@ class MSD_NUMBA_JC(object):
 # ------------------------------------------------------------------------------
 # Helper function for MSD_NUMBA_JC
 # ------------------------------------------------------------------------------
-@jit(nopython=False)
+# @jit(nopython=False)
+# @njit
 def msd_integrate(msd, x0, T):
     """
     Integrate the differential equations and calculate the resulting rates and forces.
@@ -448,15 +506,23 @@ def msd_integrate(msd, x0, T):
     msd.init()
 
     # Perform the integration
+    # msd.X = integrate.odeint(msd.rates, x0, T, rtol=1.0e-6, atol=1.0e-6)
     X = integrate.odeint(msd.rates, x0, T, rtol=1.0e-6, atol=1.0e-6)
 
-    Xdot = np.zeros((N, len(x0)))
-    for n in range(N):
-        Xdot[n] = msd.rates(X[n], T[n])
+    # msd.T = T
+    # msd.all_rates()
+    # msd.all_forces()
 
-    # Force and moment matrix
-    F = np.zeros((N, 1))
-    for n in range(N):
-        F[n] = msd.forces(Xdot[n], X[n])
+    # Xdot = np.zeros((N, len(x0)))
+    # for n in range(N):
+    #     Xdot[n] = msd.rates(X[n], T[n])
+    Xdot = msd.all_rates(X, T)
 
+    # # Force and moment matrix
+    # F = np.zeros((N, 1))
+    # for n in range(N):
+    #     F[n] = msd.forces(Xdot[n], X[n])
+    F = msd.all_forces(Xdot, X)
+
+    # return msd.X, msd.Xdot, msd.F
     return X, Xdot, F
