@@ -40,14 +40,18 @@ Install Boost. I like to keep it local::
 
   tar xvf boost_X_XX_X.tar.bz2
   cd boost_X_XX_X
-  ./bootstrap.sh --with-python=/opt/anaconda3/bin/python3.6
-  mkdir $HOME/pool
-  ./b2 install --with-python --prefix=$HOME/pool
+  ./bootstrap.sh --with-python=/opt/anaconda3/bin/python3.6 --with-python-version=3.6 --with-python-root=/opt/anaconda3/lib/python3.6
+  mkdir ${HOME}/pool
+  ./b2 install --with-python --prefix=${HOME}/pool
   cd ..
+
+You may need to edit user-config.jam in $HOME to set Python configuration::
+
+  using python : 3.6 : /opt/anaconda3/bin/python3.6 : /opt/anaconda3/include/python3.6m : /opt/anaconda3/lib/python3.6 ;
 
 Tell the dynamic linker about Boost (add to your .bashrc)::
 
-  export LD_LIBRARY_PATH=$HOME/pool/lib:${LD_LIBRARY_PATH}
+  export LD_LIBRARY_PATH=${HOME}/pool/lib:${LD_LIBRARY_PATH}
 
 Assuming you have Python installed on your system, make sure you also have the development libraries::
 
@@ -71,7 +75,7 @@ Or install using the requirements::
 
 Clone the odeint source, and install (copy) into your Boost directory::
 
-  git clone git://github.com/headmyshoulder/odeint-v2
+  git clone https://github.com/headmyshoulder/odeint-v2.git
   cp -r odeint-v2/include/boost/numeric/ $HOME/pool/include/boost/
 
 Download PyUblas::
@@ -79,23 +83,21 @@ Download PyUblas::
   git clone http://git.tiker.net/trees/pyublas.git
   cd pyublas
 
-Create and Customize a Configuration File ".aksetup-defaults.py" in your home directory with the following text::
+Create and Customize a Configuration File ".aksetup-defaults.py" in your $HOME directory with the following text::
 
-  BOOST_BINDINGS_INC_DIR = ['$HOME/pool/include/boost-bindings']
-  BOOST_INC_DIR = ['$HOME/pool/include']
-  BOOST_LIB_DIR = ['$HOME/pool/lib']
+  BOOST_BINDINGS_INC_DIR = ['${HOME}/pool/include/boost-bindings']
+  BOOST_INC_DIR = ['${HOME}/pool/include']
+  BOOST_LIB_DIR = ['${HOME}/pool/lib']
   BOOST_PYTHON_LIBNAME = ['boost_python3']
-
-Note: I have found it necessary to expand the $HOME environment variable.
 
 Build PyUblas::
 
-  python setup.py install
+  python setup.py install --user
   cd ..
 
 Install (copy) the include files into your Boost directory::
 
-  cp -r pyublas/pyublas/include/pyublas/ ~/pool/include/
+  cp -r pyublas/pyublas/include/pyublas/ ${HOME}/pool/include/
 
 The instructions to install Pyublas are also here: http://documen.tician.de/pyublas/installing.html
 
@@ -104,19 +106,23 @@ Finally, build the Boost msd model, "msde"::
   cd msd
   python setup-pyublas.py build_ext --inplace
 
-If you encounter a compiler error: "... '_1' was not declared in this scope ...", add the following directive to $HOME/pool/include/boost/python/exception_translator.hpp and $HOME/pool/include/boost/python/iterator.hpp, after the include of boost/bind.hpp::
+If you encounter a compiler error: "... '_1' was not declared in this scope ...", add the following directive to ${HOME}/pool/include/boost/python/exception_translator.hpp and $HOME/pool/include/boost/python/iterator.hpp, after the include of boost/bind.hpp::
 
   # include <boost/bind/placeholders.hpp>
 
 Also, expand any reference to _1 and _2 with boost::placeholders::_1 and boost::placeholders::_2, respectively.
 
-If that goes ok, you should have a shared object at msd/msde*.so
+If that goes ok, you should have a shared object at msd/msdux*.so
 
 In the same directory build the Cython extension::
 
   python setup-cython.py build_ext --inplace
 
-Again, if that goes ok, you should have a shared object at msd/msdc*.so
+And build the Boost extension::
+
+  python setup-boost.py build_ext --inplace
+
+Again, if that goes ok, you should have shared objects at msd/msdc*.so and msd/msdbx*.so
 
 Execution
 =========
